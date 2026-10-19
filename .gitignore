@@ -1,0 +1,17 @@
+node_modules/
+.next/
+next-env.d.ts
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+backend/src/generated/prisma/
+*.log
+.env
+.env.*
+!.env.example
+!.env.*.example
+.DS_Store
+Thumbs.db
