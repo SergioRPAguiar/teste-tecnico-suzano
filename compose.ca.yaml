@@ -1,0 +1,19 @@
+# Os iniciadores acrescentam este override somente quando ha um bundle do host.
+# Os certificados sao secrets de build, nao volumes ou arquivos das imagens.
+secrets:
+  system_ca:
+    file: ${SUZANO_BUILD_CA_FILE:?Informe o caminho do bundle de CAs do sistema}
+
+services:
+  migrate:
+    build:
+      secrets:
+        - system_ca
+  api:
+    build:
+      secrets:
+        - system_ca
+  web:
+    build:
+      secrets:
+        - system_ca

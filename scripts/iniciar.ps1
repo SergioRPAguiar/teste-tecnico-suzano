@@ -3,6 +3,8 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $root '.env'
 $example = Join-Path $root '.env.example'
+$caBundle = $null
+$previousCaFile = [Environment]::GetEnvironmentVariable('SUZANO_BUILD_CA_FILE', 'Process')
 
 function Docker-Step([string[]]$Arguments) {
     & docker @Arguments
@@ -31,6 +33,15 @@ try {
     Docker-Step ($composeArgs + @('config', '--quiet'))
     if ($Verificar) { Write-Host 'Pre-requisitos e configuracao validos. Nenhum servico foi alterado.'; exit 0 }
 
+    if (-not $SemBuild) {
+        . (Join-Path $PSScriptRoot 'certificados.ps1')
+        $caBundle = Export-WindowsRootCaBundle
+        $env:SUZANO_BUILD_CA_FILE = $caBundle.Path
+        $composeArgs += @('-f', (Join-Path $root 'compose.ca.yaml'))
+        Docker-Step ($composeArgs + @('config', '--quiet'))
+        Write-Host "Build com $($caBundle.Count) CAs raiz confiaveis do Windows (uso temporario)."
+    }
+
     $buildOption = if ($SemBuild) { '--no-build' } else { '--build' }
     Write-Host 'Iniciando. Na primeira execucao, o build baixa imagens e pode levar varios minutos.'
     Docker-Step ($composeArgs + @('up', '-d', $buildOption, '--wait', '--wait-timeout', '180'))
@@ -51,4 +62,10 @@ try {
     Write-Host 'Diagnostico na raiz: docker compose ps -a; docker compose logs --tail 100'
     Write-Host 'Guia: docs/INSTALACAO.md'
     exit 1
+} finally {
+    if ($null -ne $caBundle) {
+        [Environment]::SetEnvironmentVariable('SUZANO_BUILD_CA_FILE', $previousCaFile, 'Process')
+        try { [System.IO.File]::Delete($caBundle.Path) }
+        catch { Write-Warning "Nao foi possivel remover o bundle temporario: $($caBundle.Path)" }
+    }
 }

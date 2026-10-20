@@ -82,6 +82,7 @@ execução local não é apresentada como execução remota de CI.
 | I16 | Fotos demo: build/subida Docker saudáveis;48 produtos existentes com preço/estoque e demais campos não visuais intactos,48 imagens atualizadas, seis JPEGs HTTP200; repetição do seed sem alterações. Playwright6 mock +2 reais passaram com fotos carregadas; novo snapshot intencional inspecionado e comparação posterior aprovada |
 | I17 | Roteiro docs/SWAGGER.md exercitado por HTTP: login200, proteção401, produto201/PATCH200, pedido39.80/estoque3, preço histórico, conflitos409, DELETE204/404 e Pendente/Cancelado/default. Fixtures exclusivas removidas, sem alterar produtos preexistentes |
 | I18 | Edição pela interface (D16):22 unitários,8 mock +2 reais passaram; seis campos editáveis, mesmo ID sem duplicação, cancelamento sem salvar, rascunho após401 e PATCH apenas dos campos alterados. Typecheck/builds passaram, snapshot inspecionado/comparado e rebuild manteve os48 produtos intactos. Seed compilado exercitado em memória preservou fotos personalizadas locais/externas |
+| I19 | CAs do sistema (D17): TLS de laboratório aceita CA correta e rejeita ausente/incorreta, sem desativar validação; secrets não persistem. PEM Windows válido/deduplicado, limpeza em sucesso/falha e caminhos com espaços verificados. Iniciador Windows completo e backend sem secret reconstruído passaram;48 produtos/.env preservados e2 testes reais de navegador aprovados. Bash: sintaxe, seleção do bundle com Docker substituído, preflight e subida real sem build passaram no WSL |
 
 Builds/typechecks e instalações npm por lockfile passaram nos ambientes indicados.
 Instalações finais reportaram0 vulnerabilidades no npm audit; isso é resultado datado,
@@ -93,7 +94,7 @@ não promessa sobre futuras bases de advisories. Nenhum benchmark de capacidade 
 |---|---|---|---|
 | E01 | Publicar código e compartilhar link | Repositório de entrega | https://github.com/SergioRPAguiar/teste-tecnico-suzano — código e histórico na branch main |
 | E02 | Prazo de cinco dias úteis do enunciado | Sob controle do responsável | Não é uma verificação de código |
-| E03 | Instruções de execução/testes | Verificado | README, docs/INSTALACAO.md e docs/SWAGGER.md; iniciadores Windows/Linux, exemplos de ambiente e roteiro Swagger detalhado (I17). Windows build/subida passaram; Bash preflight/subida sem build passaram no WSL (D14) |
+| E03 | Instruções de execução/testes | Verificado | README, docs/INSTALACAO.md e docs/SWAGGER.md; iniciadores Windows/Linux, CAs automáticas no build e roteiro Swagger detalhado (I17/I19). Windows build/subida passaram; Bash preflight/subida sem build passaram no WSL (D14/D17) |
 
 **Auditoria:** obrigatórios e extras técnicos do PDF implementados e verificados localmente.
 Publicação e histórico são verificáveis diretamente no repositório acima. O resultado

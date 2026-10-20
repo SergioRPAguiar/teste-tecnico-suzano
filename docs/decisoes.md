@@ -312,3 +312,29 @@ com suporte equivalente no mock. Alternativa anterior: editar somente pelo Swagg
   PATCH parcial e ausência de duplicação. Snapshot com os botões inspecionado e comparação
   posterior aprovada. Rebuild preservou integralmente os 48 produtos existentes; verificação
   do seed compilado em memória confirmou preservação de foto personalizada local/externa.
+
+## D17 — CAs do sistema no build corporativo — autorizado e verificado
+
+O responsável relatou falha de TLS em binaries.prisma.sh no computador corporativo
+e pediu execução simples sem obter certificado manualmente com a TI. Autorizou
+explicitamente a adaptação automática, validação com CA de teste, commit e push.
+Alternativas discutidas: certificado fornecido manualmente ou imagens pré-compiladas.
+A solução mantém a stack e o mesmo comando de inicialização.
+
+- PowerShell lê Root de CurrentUser/LocalMachine em modo somente leitura, exclui
+  certificados Disallowed, deduplica e gera PEM público temporário. Não lê chaves
+  privadas, instala certificados no sistema ou escreve configuração permanente.
+- Bash usa o bundle de CAs do Linux quando disponível. Ambos acrescentam o override
+  compose.ca.yaml, que fornece system_ca como secret de build para migrate/api/web.
+- Helper POSIX define NODE_EXTRA_CA_CERTS apenas no processo/filhos daquele RUN.
+  Npm e geração do Prisma recebem a confiança adicional; validação HTTPS continua ativa.
+  Execução sem secret segue com a confiança padrão. Nenhum bundle é incorporado à imagem.
+- Verificar e SemBuild preservam seus contratos; a limpeza Windows ocorre em finally
+  em sucesso/erro tratado, restaurando também a variável de ambiente do processo.
+- Verificações: CA de laboratório aceita quando fornecida, ausente/incorreta rejeitadas;
+  secrets ausentes na camada seguinte. PEM Windows parseável/deduplicado e limpeza
+  em sucesso/falha com caminhos contendo espaços. Build/subida Windows completos,
+  backend sem secret reconstruído sem cache do estágio, dois testes reais de navegador
+  aprovados e 48 produtos/.env preservados. Bash: sintaxe, seleção de CA com Docker
+  substituído, preflight e subida real sem build no WSL aprovados. Não se declara um
+  build completo WSL nem execução na rede corporativa do responsável nesta máquina.

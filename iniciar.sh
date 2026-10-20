@@ -35,6 +35,18 @@ COMPOSE=(docker compose --project-directory "$ROOT" --env-file "$ENV_FILE" -f "$
 "${COMPOSE[@]}" config --quiet
 if $CHECK; then echo 'Pre-requisitos e configuracao validos. Nenhum servico foi alterado.'; exit 0; fi
 
+if [[ "$BUILD_OPTION" == '--build' ]]; then
+  for bundle in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/cert.pem; do
+    if [[ -r "$bundle" && -s "$bundle" ]]; then
+      export SUZANO_BUILD_CA_FILE="$bundle"
+      COMPOSE+=(-f "$ROOT/compose.ca.yaml")
+      "${COMPOSE[@]}" config --quiet
+      echo 'Build com as CAs confiaveis do sistema Linux (uso temporario).'
+      break
+    fi
+  done
+fi
+
 echo 'Iniciando. Na primeira execucao, o build baixa imagens e pode levar varios minutos.'
 "${COMPOSE[@]}" up -d "$BUILD_OPTION" --wait --wait-timeout 180
 "${COMPOSE[@]}" ps -a

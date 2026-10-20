@@ -9,6 +9,10 @@
 - Iniciadores do avaliador: iniciar.cmd/scripts/iniciar.ps1 (Windows) e iniciar.sh (Bash).
   Preservam .env/volumes; Verificar/--verificar só confere ambiente. SemBuild/--sem-build
   exige imagens existentes. Guia operacional detalhado em docs/INSTALACAO.md.
+- Build pelos iniciadores usa CAs raiz do Windows/bundle Linux via compose.ca.yaml e
+  secret system_ca; build-with-ca.sh aplica NODE_EXTRA_CA_CERTS só naquele processo.
+  Não versionar/incorporar certificados do host às imagens nem desativar TLS. Arquivo
+  temporário Windows deve ser limpo em finally; Verificar/SemBuild não o geram.
 - Compose sobe db → migrate (migrations/seed, termina0) → api → web. `down` preserva
   volume; `down --volumes` remove dados. POSTGRES_* só inicializa volume vazio.
 - Padrões: frontend3000, API3001, PostgreSQL local5433. Exemplos de ambiente separados

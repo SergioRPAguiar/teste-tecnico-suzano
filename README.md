@@ -34,8 +34,11 @@ e execute apenas o iniciador da sua plataforma. Ele prepara `.env`, banco, migra
 
 Os scripts preservam `.env` e volumes existentes. A primeira execução baixa imagens
 e compila a aplicação; aguarde a mensagem final. Interface3000 e Swagger3001/docs.
+Em redes corporativas, os iniciadores fornecem automaticamente ao build as CAs raiz
+confiáveis do Windows ou o bundle do Linux. Não é preciso exportar certificados à mão;
+a validação HTTPS permanece ativa. [Detalhes e diagnóstico](docs/INSTALACAO.md#certificados-em-redes-corporativas).
 
-### Execução manual equivalente
+### Execução manual — rede com certificados públicos
 
 Pré-requisitos: Docker Desktop/Engine Linux com Compose v2 e BuildKit. Ambiente
 verificado com Docker 27.4.0 e Compose 2.31.0. As imagens base estão fixadas por digest.
@@ -48,6 +51,9 @@ verificado com Docker 27.4.0 e Compose 2.31.0. As imagens base estão fixadas po
    docker compose up -d --build --wait
    docker compose ps
    ```
+
+Esses comandos manuais usam a confiança padrão das imagens. Para aproveitar as CAs
+do computador em uma rede corporativa, use o iniciador da sua plataforma.
 
 O Compose inicia PostgreSQL, aplica migrations/carrega o seed por um serviço de execução
 única (`migrate`) e inicia API/frontend. `migrate` terminar com código 0 é esperado;
