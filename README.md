@@ -8,9 +8,10 @@ executável com MSW, além da integração com o backend real.
 
 ## O que está implementado
 
-- Listagem, cadastro e edição pela interface, busca por nome/faixa de preço e ordenação.
+- Listagem e cadastro pela interface, busca por nome/faixa de preço e ordenação.
+- Cadastro com categoria em texto livre e preço digitado em centavos.
 - Estado global com Zustand; paginação de 10 produtos, com opções 20/50/100.
-- Interface responsiva, validação, estados de carregamento/erro/vazio e fallback de imagens.
+- Interface responsiva com direção visual editorial, validação, estados de carregamento/erro/vazio e fallback de imagens.
 - Fotografias ilustrativas locais nos 48 produtos demo, com [fontes e licenças](frontend/public/images/FONTES.md).
 - CRUD de produtos; criação/listagem de pedidos; total calculado no servidor.
 - Preços históricos nos itens, consistência transacional e proteção contra disputa de estoque.
@@ -72,7 +73,7 @@ as imagens demo gerenciadas, sem mudar preço/estoque ou substituir fotos person
 | OpenAPI JSON / YAML | `/docs-json` / `/docs-yaml` na API |
 | PostgreSQL para ferramentas locais | `127.0.0.1:5433` |
 
-**Nunca usou Swagger?** Siga o [roteiro do primeiro clique ao pedido, com JSON e resultados esperados](docs/SWAGGER.md).
+Para facilitar a avaliação, está disponível um [roteiro opcional de operações no Swagger, com exemplos de JSON e resultados esperados](docs/SWAGGER.md).
 
 **Acesso de demonstração:** usuário `admin`, senha `Suzano@123`.
 A leitura de produtos é pública. Cadastros/alterações/exclusões e pedidos exigem login.
@@ -178,9 +179,9 @@ Não execute os servidores locais nas mesmas portas dos containers `api`/`web` j
 - Itens repetidos são rejeitados (400). O preço de compra é mantido mesmo após editar o produto.
 - Filtros/ordenação/paginação da interface são aplicados **nessa ordem**, no frontend.
   Após cadastro, filtros são limpos, ordenação/tamanho mantidos e a página do novo item é exibida.
-- Cada cartão tem **Editar**: após login, abre os dados atuais e salva por PATCH apenas
-  os campos alterados. A edição também limpa filtros e mostra a nova posição do item,
-  mantendo ordenação/tamanho; cancelar não salva. Funciona em mock e API real.
+- Categoria é um campo de texto obrigatório no formulário, assim como no contrato da API.
+- No preço do cadastro, digite apenas os números: `125` aparece como `01,25` no campo
+  e é enviado como `"1.25"`. Os cartões exibem o valor como `R$ 1,25`.
 
 ## Testes
 
@@ -238,9 +239,9 @@ o snapshot é condicionado a Linux, por isso o caminho Docker é o recomendado.
 |---|---|
 | Backend unitário | 48 testes passaram |
 | Backend HTTP/PostgreSQL | 11 testes passaram, incluindo concorrência e rollback |
-| Frontend unitário | 22 testes passaram, incluindo imagens demo e estado pós-edição |
-| Navegador mock | 8 testes passaram, incluindo edição, retomada após 401, snapshot e larguras 320/375/768 |
-| Navegador real | 2 testes passaram, incluindo cadastro/edição/persistência; instalação com volume novo verificada no marco I15 |
+| Frontend unitário | 33 testes passaram, incluindo entrada por centavos e imagens demo |
+| Navegador mock | 8 testes passaram; cadastro, categoria livre, preço, retomada após 401, snapshot e larguras 320/375/768/1024/1440 |
+| Navegador real | 2 testes passaram; cadastro/persistência e recuperação de conexão; instalação com volume novo verificada no marco I15 |
 | Builds e typechecks | Passaram em Windows e/ou imagens Linux conforme evidências |
 
 O workflow em `.github/workflows/ci.yml` executa essas verificações em jobs separados.

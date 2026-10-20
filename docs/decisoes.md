@@ -40,7 +40,7 @@ conforme o plano, pelos fluxos finais D09–D13; evidências consolidadas em req
 
 | ID | Questão resolvida | Decisão resumida |
 |---|---|---|
-| C01 | Categoria no cadastro | Campo obrigatório de texto, sem CRUD de categorias |
+| C01 | Categoria no cadastro | Texto obrigatório no formulário e na API, sem CRUD de categorias |
 | C02 | Imagem e estoque nos modos mock/real | Contrato único; imagem obrigatória e estoque inicial explícito no formulário |
 | C03 | Status na criação, baixa e eventuais transições | Pendente por padrão, status aceito na criação; sem rota de transição |
 | C04 | Representação de dinheiro | Decimal exato, strings na API e cálculo no servidor |
@@ -51,11 +51,12 @@ conforme o plano, pelos fluxos finais D09–D13; evidências consolidadas em req
 
 ### Contrato aprovado — etapa 1
 
-Autorização: responsável respondeu “de resto concordo com tudo” à proposta C01–C08,
-solicitando em C07 opções de 20, 50 e 100 além de 10 produtos por página. A proposta
-anterior de tamanho fixo 10 foi substituída por essa seleção. Implementação verificada na matriz.
+Os contratos C01–C08 foram definidos em comum acordo após análise das propostas.
+Para C07, foi estabelecida paginação com 10 produtos por padrão e opções de 20, 50
+e 100 por página. A implementação e as evidências estão consolidadas na matriz.
 
-- **C01:** incluir categoria obrigatória no formulário, como texto, sem criar CRUD de categorias.
+- **C01:** categoria obrigatória como campo de texto no formulário e na API,
+  sem uma entidade ou CRUD separado de categorias.
 - **C02:** mesmo contrato nos modos mock/real: produto com os campos do backend e URL
   de imagem. Formulário com nome, categoria, descrição, preço, URL da imagem e estoque
   inicial explícito (inteiro não negativo). A API também exige imagem para garantir
@@ -189,7 +190,8 @@ Detalhamento da inicialização Next.js/TypeScript/Tailwind já prevista na etap
 - ValidationPipe global com transformação de DTO, sem coerção implícita; rejeita campos
   desconhecidos e null indevido. Textos são aparados e não podem ficar vazios.
 - Preço é string decimal simples, positivo e limitado ao DECIMAL(12,2), sem vírgula,
-  sinal ou expoente na API; até duas casas. Frontend aceita vírgula e normaliza antes de enviar.
+  sinal ou expoente na API; até duas casas. No cadastro, o frontend recebe dígitos em
+  centavos e normaliza para string decimal antes de enviar.
 - Estoque inteiro entre0 e2147483647; imagem HTTP(S) obrigatória, sem buscar seu conteúdo no servidor.
 - PATCH usa PartialType sem ignorar null; corpo vazio é rejeitado. FK/restrição real
   determina conflito409 na exclusão, evitando uma checagem prévia vulnerável a corrida.
@@ -242,7 +244,7 @@ Detalhamento da inicialização Next.js/TypeScript/Tailwind já prevista na etap
   limitado. Standalone Next usado só no Docker; manifesto final é validado durante build.
 - Jest/ts-jest e Supertest:48 unitários backend e11 integrações PostgreSQL. Banco de
   teste com sufixo obrigatório _test, migrations próprias e limpeza só de fixtures.
-- Frontend:22 unitários e Playwright com8 fluxos mock (incluindo PNG de tela) +2 reais.
+- Frontend:33 unitários e Playwright com8 fluxos mock (incluindo PNG de tela) +2 reais.
   Snapshot comparado em Linux/Chromium/ambiente fixados; não confundir com teste de comportamento.
 - Overrides YAML corrigem transitivas, mantendo API load usada pelo loader Istanbul
   (compatibilidade conferida) e versão5 corrigida no Swagger. Lockfile regenerado limpo
@@ -290,28 +292,6 @@ Alternativa considerada: manter o placeholder e o roteiro curto de operações.
   passaram, incluindo fotos carregadas. Snapshot atualizado intencionalmente, inspecionado
   e depois comparado com sucesso sem atualização. Roteiro exercitado por HTTP com
   fixtures exclusivas removidas ao final, sem alterar os registros preexistentes.
-
-## D16 — Editar produtos pela interface — solicitado e verificado
-
-O responsável solicitou explicitamente um botão para editar qualquer item do catálogo.
-A API já possui PATCH protegido; a alteração reutiliza essa rota, autenticação e formulário,
-com suporte equivalente no mock. Alternativa anterior: editar somente pelo Swagger.
-
-- Botão Editar em cada cartão, com nome acessível identificando o produto; formulário
-  preenchido com os seis campos atuais. Cancelar não salva; salvar sem alterações é informado.
-- PATCH envia apenas os campos efetivamente alterados, sem ID no corpo. Assim, mudar
-  descrição não reenvia estoque/preço capturados antes de uma possível atualização externa.
-  Alterar estoque explicitamente continua permitido pelo contrato de produtos existente.
-- Login exigido antes de abrir; 401 ao salvar retoma a mesma edição/rascunho após autenticação.
-- Sucesso substitui o mesmo ID na lista, limpa filtros e mostra sua página na ordenação
-  atual, mantendo ordem/tamanho e destacando Atualizado. A regra de cadastro C07 foi preservada.
-- Seed reconhece como gerenciada apenas a foto esperada daquele tipo ou o placeholder
-  antigo: escolher outra foto local não a faz ser sobrescrita na próxima inicialização.
-- Verificação: typecheck e 22 unitários frontend, builds backend/Docker, 8 testes mock e 2
-  reais passaram. Cobertos todos os campos, cancelamento, persistência, reautenticação,
-  PATCH parcial e ausência de duplicação. Snapshot com os botões inspecionado e comparação
-  posterior aprovada. Rebuild preservou integralmente os 48 produtos existentes; verificação
-  do seed compilado em memória confirmou preservação de foto personalizada local/externa.
 
 ## D17 — CAs do sistema no build corporativo — autorizado e verificado
 
@@ -362,3 +342,18 @@ sido autorizadas em D17; esta etapa corrige a compatibilidade desse mesmo fluxo.
   Bash: limpeza em sucesso/falha, sintaxe e subida real sem build verificadas no WSL.
   Dois testes reais de navegador aprovados nas imagens resultantes. O certificado
   e a versão de Buildx específicos do computador corporativo ainda serão revalidados lá.
+
+## D19 — Preço no cadastro
+
+- Preço digitado em centavos, começando em `00,00`: `1 → 00,01`, `12 → 00,12`,
+  `125 → 01,25`, `1259 → 12,59`, `12599 → 125,99`. A API recebe string decimal
+  canônica e os cartões exibem BRL sem zeros de preenchimento, como `R$ 1,25`.
+
+## D20 — Direção visual do catálogo
+
+- Composição editorial inspirada em papel e natureza: verde profundo, fundo claro,
+  tipografia de sistema com destaque serifado e fotografias locais. Busca, resultados,
+  cartões e paginação têm hierarquia própria; a grade se adapta de uma a quatro colunas.
+- Formulários e estados de interface seguem a mesma linguagem visual. Diálogo nativo,
+  foco inicial no primeiro campo, navegação por teclado e movimento reduzido preservam
+  a usabilidade. A atualização é visual, mantendo os contratos e os fluxos C01–C08.

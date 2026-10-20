@@ -2,7 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { API_MODE } from "../lib/api";
 import { useCatalogStore } from "../store/catalog-store";
-import { Modal } from "./ui";
+import { Icon, Modal } from "./ui";
 
 export function LoginForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const [busy, setBusy] = useState(false);
@@ -16,15 +16,15 @@ export function LoginForm({ onClose, onSuccess }: { onClose: () => void; onSucce
     finally { setBusy(false); }
   }
   function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); void authenticate(String(data.get("username")), String(data.get("password"))); }
-  return <Modal title="Acesso administrativo" id="login-dialog-title" onClose={() => { if (!busy) onClose(); }}>
-    <form onSubmit={submit} noValidate className="space-y-4 p-6">
-      <p className="text-sm leading-6 text-slate-600">A consulta é pública. Entre para cadastrar ou editar produtos.</p>
-      <div><label className="label" htmlFor="username">Usuário</label><input autoComplete="username" className="field" id="username" name="username" defaultValue="admin" disabled={busy} /></div>
+  return <Modal title="Acesso administrativo" id="login-dialog-title" onClose={() => { if (!busy) onClose(); }} compact>
+    <form onSubmit={submit} noValidate className="login-form space-y-5">
+      <p className="form-intro">Bom ter você por aqui. Entre para adicionar novos produtos ao catálogo.</p>
+      <div><label className="label" htmlFor="username">Usuário</label><input autoFocus autoComplete="username" className="field" id="username" name="username" defaultValue="admin" disabled={busy} /></div>
       <div><label className="label" htmlFor="password">Senha</label><input autoComplete="current-password" type="password" className="field" id="password" name="password" disabled={busy} /></div>
-      {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-      <button className="btn-primary w-full" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
+      {error && <p role="alert" className="form-alert">{error}</p>}
+      <button className="btn-primary w-full" disabled={busy}>{busy ? "Entrando…" : "Entrar"}<Icon name="arrow" className="h-4 w-4" /></button>
       {API_MODE === "mock" ? <button type="button" className="btn-secondary w-full" disabled={busy} onClick={() => void authenticate("admin", "Suzano@123")}>Usar acesso de demonstração</button>
-        : <p className="text-xs leading-5 text-slate-500">Use a conta configurada no backend. Credenciais de demonstração estão no README.</p>}
+        : <p className="form-hint">Use a conta configurada no backend. Credenciais de demonstração estão no README.</p>}
     </form>
   </Modal>;
 }

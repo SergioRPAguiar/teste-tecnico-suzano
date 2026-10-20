@@ -160,7 +160,7 @@ Você pode fechar o terminal depois: os containers continuam em segundo plano.
 4. Clique em **Novo produto**, faça login e preencha o formulário. Exemplo:
    - Nome: `Produto de avaliação`;
    - Categoria: `Papelaria`;
-   - Preço: `19,90`;
+   - Preço: digite `1990`; o campo exibirá `19,90`;
    - Estoque inicial: `5`;
    - Descrição: `Produto criado durante a avaliação`;
    - URL da imagem: mantenha a URL de demonstração já preenchida.
@@ -168,13 +168,6 @@ Você pode fechar o terminal depois: os containers continuam em segundo plano.
    produto é mostrada, preservando a ordenação e o tamanho de página.
 6. Recarregue: o produto continua no banco. O login fica em memória, então pode ser
    necessário entrar novamente para outra operação protegida.
-7. No cartão do produto escolhido, clique em **Editar** e faça login se solicitado.
-   O formulário abre preenchido. Altere nome, categoria, preço, estoque, descrição
-   ou URL da imagem e clique em **Salvar alterações**.
-8. Confira a confirmação e o selo **Atualizado** no mesmo produto. Os filtros são
-   limpos para mostrar sua nova posição; ordenação e tamanho de página são mantidos.
-   Recarregue e busque o nome atualizado para confirmar a persistência. **Cancelar**
-   fecha o formulário sem salvar. Se a sessão expirar, o novo login preserva o rascunho.
 
 ## Roteiro de teste manual — Swagger
 

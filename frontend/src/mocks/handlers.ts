@@ -37,19 +37,4 @@ export const handlers = [
     localStorage.setItem(KEY, JSON.stringify([...current, product]));
     return HttpResponse.json(product, { status: 201 });
   }),
-  http.patch(`${API_URL}/products/:id`, async ({ request, params }) => {
-    if (request.headers.get("authorization") !== "Bearer mock-demo-token") return failure(401, "Autenticação necessária.");
-    if (!/^-?\d+$/.test(String(params.id))) return failure(400, "ID inválido.");
-    const input = await request.json();
-    if (!input || typeof input !== "object" || Array.isArray(input) || !Object.keys(input).length) return failure(400, "Informe os campos que deseja alterar.");
-    const current = products();
-    const existing = current.find((item) => item.id === Number(params.id));
-    if (!existing) return failure(404, "Produto não encontrado.");
-    const { id, ...fields } = existing;
-    const parsed = validateProduct({ ...fields, ...input });
-    if (!parsed.data) return failure(400, Object.values(parsed.errors).join(" "));
-    const product = { ...parsed.data, id, price: toApiPrice(parsed.data.price)! };
-    localStorage.setItem(KEY, JSON.stringify(current.map((item) => item.id === id ? product : item)));
-    return HttpResponse.json(product);
-  }),
 ];

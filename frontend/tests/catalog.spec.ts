@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("product-card").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Editar / })).toHaveCount(0);
   const image = page.getByTestId("product-card").first().locator("img");
   await expect(image).toHaveAttribute("src", /\/images\/notas\.jpg$/);
   await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
@@ -35,7 +36,7 @@ test("cadastro autenticado limpa filtro, mantém ordem e exibe o novo produto", 
   await expect(page.getByRole("heading", { name: "Cadastrar produto" })).toBeVisible();
   await page.getByLabel("Nome do produto").fill("Produto recém-cadastrado");
   await page.getByRole("textbox", { name: "Categoria", exact: true }).fill("Papéis");
-  await page.getByRole("textbox", { name: "Preço (R$)", exact: true }).fill("0,10");
+  await page.getByRole("textbox", { name: "Preço (R$)", exact: true }).fill("10");
   await page.getByLabel("Estoque inicial").fill("0");
   await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Cadastro de verificação do fluxo completo.");
   await page.getByRole("button", { name: "Salvar produto", exact: true }).click();
@@ -63,80 +64,76 @@ test("informa erros de formulário e intervalo inválido", async ({ page }) => {
   await page.getByRole("button", { name: "Cancelar", exact: true }).click();
 });
 
-test("edita o produto escolhido, preserva o ID e persiste todos os campos sem duplicar", async ({ page }) => {
-  await page.getByLabel("Buscar por nome").fill("Bloco de notas — pacote 1");
-  await page.getByLabel("Ordenar por").selectOption("price-desc");
-  await page.getByLabel("Produtos por página").selectOption("20");
-  await page.getByRole("button", { name: "Editar Bloco de notas — pacote 1", exact: true }).click();
+test("formulário móvel aceita categoria livre, mantém foco e permite cancelar sem salvar", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.getByRole("button", { name: "Novo produto", exact: true }).click();
+  await page.screenshot({ path: test.info().outputPath("acesso-mobile.png") });
   await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
-  await expect(page.getByRole("heading", { name: "Editar produto", exact: true })).toBeVisible();
-  await expect(page.getByLabel("Nome do produto")).toHaveValue("Bloco de notas — pacote 1");
-  await expect(page.getByRole("textbox", { name: "Preço (R$)", exact: true })).toHaveValue("11,90");
-  await expect(page.getByLabel("Estoque disponível")).toHaveValue("36");
-  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
-  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Altere pelo menos um campo");
-  await page.getByLabel("Nome do produto").fill("Produto alterado");
-  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
-  await expect(page.getByTestId("product-card")).toContainText("Bloco de notas — pacote 1");
-  await page.getByRole("button", { name: "Editar Bloco de notas — pacote 1", exact: true }).click();
-  await expect(page.getByLabel("Nome do produto")).toHaveValue("Bloco de notas — pacote 1");
-  await page.getByLabel("Nome do produto").fill("Produto alterado");
-  await page.getByRole("textbox", { name: "Categoria", exact: true }).fill("Atualizados");
-  await page.getByRole("textbox", { name: "Preço (R$)", exact: true }).fill("99,90");
-  await page.getByLabel("Estoque disponível").fill("7");
-  await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Descrição alterada na edição.");
-  const imageUrl = new URL("/images/papel.jpg", page.url()).href;
-  await page.getByLabel("URL da imagem").fill(imageUrl);
-  const patch = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/products/37"));
-  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
-  expect((await patch).postDataJSON()).toEqual({ name: "Produto alterado", category: "Atualizados", price: "99.90", stockQuantity: 7, description: "Descrição alterada na edição.", imageUrl });
-  const card = page.getByTestId("product-card").filter({ hasText: "Produto alterado" });
-  await expect(card).toHaveAttribute("id", "product-37");
-  await expect(card).toContainText("Atualizado");
-  await expect(card).toContainText("7 em estoque");
-  await expect(card).toContainText("99,90");
-  await expect(page.getByLabel("Buscar por nome")).toHaveValue("");
-  await expect(page.getByLabel("Ordenar por")).toHaveValue("price-desc");
-  await expect(page.getByLabel("Produtos por página")).toHaveValue("20");
-  await page.reload();
-  await expect(page.getByTestId("product-card").first()).toBeVisible();
-  await expect(page.getByText("48 produtos encontrados")).toBeVisible();
-  await page.getByLabel("Buscar por nome").fill("Produto alterado");
-  await expect(page.getByTestId("product-card")).toHaveCount(1);
-  await expect(page.getByTestId("product-card")).toHaveAttribute("id", "product-37");
-  await page.getByRole("button", { name: "Editar Produto alterado", exact: true }).click();
-  await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
-  await expect(page.getByRole("textbox", { name: "Categoria", exact: true })).toHaveValue("Atualizados");
-  await expect(page.getByRole("textbox", { name: "Descrição", exact: true })).toHaveValue("Descrição alterada na edição.");
-  await expect(page.getByLabel("URL da imagem")).toHaveValue(imageUrl);
+  const dialog = page.getByRole("dialog", { name: "Cadastrar produto", exact: true });
+  await expect(page.getByLabel("Nome do produto")).toBeFocused();
+  await page.getByLabel("Nome do produto").fill("Rascunho preservado");
+  const category = page.getByRole("textbox", { name: "Categoria", exact: true });
+  await category.fill("Categoria personalizada");
+  await expect(page.getByRole("combobox", { name: "Categoria", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Nome do produto")).toHaveValue("Rascunho preservado");
+  for (const width of [320, 375, 768]) {
+    await page.setViewportSize({ width, height: 812 });
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  }
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.screenshot({ path: test.info().outputPath("cadastro-mobile.png") });
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await page.getByRole("button", { name: "Novo produto", exact: true }).click();
+  await expect(category).toHaveValue("");
+  await expect(page.getByLabel("Nome do produto")).toHaveValue("");
 });
 
-test("edição retoma o rascunho após 401 e envia apenas o campo alterado", async ({ page }) => {
-  await page.getByRole("button", { name: "Editar Bloco de notas — pacote 1", exact: true }).click();
+test("preço desloca centavos, valida limites e preserva categoria e rascunho após401", async ({ page }) => {
+  await page.getByRole("button", { name: "Novo produto", exact: true }).click();
   await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
-  await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Rascunho preservado após nova autenticação.");
+  await page.getByLabel("Nome do produto").fill("Produto com centavos");
+  await page.getByRole("textbox", { name: "Categoria", exact: true }).fill("Material de apoio");
+  await page.getByLabel("Estoque inicial").fill("4");
+  await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Cadastro com entrada monetária em centavos.");
+  const price = page.getByRole("textbox", { name: "Preço (R$)", exact: true });
+  await expect(price).toHaveValue("00,00");
+  for (const [digit, expected] of [["1", "00,01"], ["2", "00,12"], ["5", "01,25"], ["9", "12,59"], ["9", "125,99"]]) {
+    await price.pressSequentially(digit!);
+    await expect(price).toHaveValue(expected!);
+  }
+  await page.screenshot({ path: test.info().outputPath("preco-centavos.png") });
+  await price.press("Backspace"); await expect(price).toHaveValue("12,59");
+  await price.fill(""); await expect(price).toHaveValue("00,00");
+  await page.getByRole("button", { name: "Salvar produto", exact: true }).click();
+  await expect(page.getByText("Informe um preço positivo", { exact: false })).toBeVisible();
+  await price.fill("1000000000000");
+  await page.getByRole("button", { name: "Salvar produto", exact: true }).click();
+  await expect(price).toHaveAttribute("aria-invalid", "true");
+  await price.fill("12599");
   await page.evaluate(() => {
     const original = window.fetch;
     window.fetch = (input, init) => {
-      if (init?.method === "PATCH") {
+      if (init?.method === "POST" && String(input).endsWith("/products")) {
         window.fetch = original;
         return Promise.resolve(new Response(JSON.stringify({ message: "Token expirado." }), { status: 401, headers: { "Content-Type": "application/json" } }));
       }
       return original(input, init);
     };
   });
-  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
+  await page.getByRole("button", { name: "Salvar produto", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Acesso administrativo", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
-  await expect(page.getByRole("heading", { name: "Editar produto", exact: true })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Descrição", exact: true })).toHaveValue("Rascunho preservado após nova autenticação.");
-  const patch = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/products/37"));
-  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
-  expect((await patch).postDataJSON()).toEqual({ description: "Rascunho preservado após nova autenticação." });
-  const card = page.getByTestId("product-card").filter({ hasText: "Bloco de notas — pacote 1" });
-  await expect(card).toContainText("Rascunho preservado após nova autenticação.");
-  await expect(card).toContainText("36 em estoque");
-  await expect(card).toContainText("11,90");
+  await expect(page.getByRole("heading", { name: "Cadastrar produto", exact: true })).toBeVisible();
+  await expect(price).toHaveValue("125,99");
+  await expect(page.getByRole("textbox", { name: "Categoria", exact: true })).toHaveValue("Material de apoio");
+  const post = page.waitForRequest((request) => request.method() === "POST" && request.url().endsWith("/products"));
+  await page.getByRole("button", { name: "Salvar produto", exact: true }).click();
+  expect((await post).postDataJSON()).toMatchObject({ name: "Produto com centavos", category: "Material de apoio", price: "125.99", stockQuantity: 4 });
+  const card = page.getByTestId("product-card").filter({ hasText: "Produto com centavos" });
+  await expect(card).toContainText("Material de apoio");
+  await expect(card).toContainText("125,99");
+  await expect(card).toContainText("4 em estoque");
 });
 
 test("tela vazia é recuperável e layout móvel não transborda", async ({ page }) => {
@@ -145,10 +142,13 @@ test("tela vazia é recuperável e layout móvel não transborda", async ({ page
   await expect(page.getByRole("heading", { name: "Nenhum produto encontrado" })).toBeVisible();
   await page.getByRole("button", { name: "Limpar busca" }).click();
   await expect(page.getByTestId("product-card")).toHaveCount(10);
-  for (const width of [320, 375, 768]) {
+  for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 812 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: test.info().outputPath("catalogo-mobile.png"), fullPage: true });
 });
 
 test("imagem indisponível usa fallback local", async ({ page }) => {

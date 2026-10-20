@@ -21,9 +21,6 @@ export const api = {
   createProduct: (input: NewProduct, token: string) => call<Product>("/products", {
     method: "POST", headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(input),
   }),
-  updateProduct: (id: number, input: Partial<NewProduct>, token: string) => call<Product>(`/products/${id}`, {
-    method: "PATCH", headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(input),
-  }),
   login: (username: string, password: string) => call<LoginResponse>("/auth/login", {
     method: "POST", body: JSON.stringify({ username, password }),
   }),
