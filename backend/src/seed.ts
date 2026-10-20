@@ -13,11 +13,11 @@ const catalog = [
 ] as const;
 
 const publicUrl = process.env.FRONTEND_PUBLIC_URL ?? "http://localhost:3000";
-const managedPaths = new Set(["/product-placeholder.svg", ...catalog.map((item) => `/images/${item[3]}`)]);
-function isManagedImage(value: string): boolean {
+function isManagedImage(value: string, image: string): boolean {
   try {
     const url = new URL(value);
-    return managedPaths.has(url.pathname) && [new URL(publicUrl).hostname, "localhost", "127.0.0.1", "web"].includes(url.hostname);
+    return ["/product-placeholder.svg", `/images/${image}`].includes(url.pathname)
+      && [new URL(publicUrl).hostname, "localhost", "127.0.0.1", "web"].includes(url.hostname);
   } catch { return false; }
 }
 
@@ -31,7 +31,7 @@ async function seed() {
       const existing = await prisma.product.findFirst({ where: { name: productName } });
       if (existing) {
         // Atualiza só a imagem gerenciada do demo, nunca preço/estoque ou fotos personalizadas.
-        if (existing.imageUrl !== imageUrl && isManagedImage(existing.imageUrl)) {
+        if (existing.imageUrl !== imageUrl && isManagedImage(existing.imageUrl, image)) {
           await prisma.product.update({ where: { id: existing.id }, data: { imageUrl } });
           imagesUpdated++;
         }

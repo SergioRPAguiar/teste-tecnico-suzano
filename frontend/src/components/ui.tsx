@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 const paths = {
   search: "m21 21-5-5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z",
   plus: "M12 5v14M5 12h14",
+  edit: "m16 4 4 4M4 16 16 4a2.8 2.8 0 0 1 4 4L8 20H4v-4Z",
   left: "m15 18-6-6 6-6", right: "m9 18 6-6-6-6",
   close: "m6 6 12 12M6 18 18 6", check: "m5 12 4 4L19 6",
   box: "m3 7 9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7M12 11v10M7 5l10 4",

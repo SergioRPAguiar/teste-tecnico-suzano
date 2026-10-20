@@ -242,7 +242,7 @@ Detalhamento da inicialização Next.js/TypeScript/Tailwind já prevista na etap
   limitado. Standalone Next usado só no Docker; manifesto final é validado durante build.
 - Jest/ts-jest e Supertest:48 unitários backend e11 integrações PostgreSQL. Banco de
   teste com sufixo obrigatório _test, migrations próprias e limpeza só de fixtures.
-- Frontend:20 unitários e Playwright com6 fluxos mock (incluindo PNG de tela) +2 reais.
+- Frontend:22 unitários e Playwright com8 fluxos mock (incluindo PNG de tela) +2 reais.
   Snapshot comparado em Linux/Chromium/ambiente fixados; não confundir com teste de comportamento.
 - Overrides YAML corrigem transitivas, mantendo API load usada pelo loader Istanbul
   (compatibilidade conferida) e versão5 corrigida no Swagger. Lockfile regenerado limpo
@@ -290,3 +290,25 @@ Alternativa considerada: manter o placeholder e o roteiro curto de operações.
   passaram, incluindo fotos carregadas. Snapshot atualizado intencionalmente, inspecionado
   e depois comparado com sucesso sem atualização. Roteiro exercitado por HTTP com
   fixtures exclusivas removidas ao final, sem alterar os registros preexistentes.
+
+## D16 — Editar produtos pela interface — solicitado e verificado
+
+O responsável solicitou explicitamente um botão para editar qualquer item do catálogo.
+A API já possui PATCH protegido; a alteração reutiliza essa rota, autenticação e formulário,
+com suporte equivalente no mock. Alternativa anterior: editar somente pelo Swagger.
+
+- Botão Editar em cada cartão, com nome acessível identificando o produto; formulário
+  preenchido com os seis campos atuais. Cancelar não salva; salvar sem alterações é informado.
+- PATCH envia apenas os campos efetivamente alterados, sem ID no corpo. Assim, mudar
+  descrição não reenvia estoque/preço capturados antes de uma possível atualização externa.
+  Alterar estoque explicitamente continua permitido pelo contrato de produtos existente.
+- Login exigido antes de abrir; 401 ao salvar retoma a mesma edição/rascunho após autenticação.
+- Sucesso substitui o mesmo ID na lista, limpa filtros e mostra sua página na ordenação
+  atual, mantendo ordem/tamanho e destacando Atualizado. A regra de cadastro C07 foi preservada.
+- Seed reconhece como gerenciada apenas a foto esperada daquele tipo ou o placeholder
+  antigo: escolher outra foto local não a faz ser sobrescrita na próxima inicialização.
+- Verificação: typecheck e 22 unitários frontend, builds backend/Docker, 8 testes mock e 2
+  reais passaram. Cobertos todos os campos, cancelamento, persistência, reautenticação,
+  PATCH parcial e ausência de duplicação. Snapshot com os botões inspecionado e comparação
+  posterior aprovada. Rebuild preservou integralmente os 48 produtos existentes; verificação
+  do seed compilado em memória confirmou preservação de foto personalizada local/externa.

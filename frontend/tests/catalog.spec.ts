@@ -63,6 +63,82 @@ test("informa erros de formulário e intervalo inválido", async ({ page }) => {
   await page.getByRole("button", { name: "Cancelar", exact: true }).click();
 });
 
+test("edita o produto escolhido, preserva o ID e persiste todos os campos sem duplicar", async ({ page }) => {
+  await page.getByLabel("Buscar por nome").fill("Bloco de notas — pacote 1");
+  await page.getByLabel("Ordenar por").selectOption("price-desc");
+  await page.getByLabel("Produtos por página").selectOption("20");
+  await page.getByRole("button", { name: "Editar Bloco de notas — pacote 1", exact: true }).click();
+  await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
+  await expect(page.getByRole("heading", { name: "Editar produto", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Nome do produto")).toHaveValue("Bloco de notas — pacote 1");
+  await expect(page.getByRole("textbox", { name: "Preço (R$)", exact: true })).toHaveValue("11,90");
+  await expect(page.getByLabel("Estoque disponível")).toHaveValue("36");
+  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Altere pelo menos um campo");
+  await page.getByLabel("Nome do produto").fill("Produto alterado");
+  await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await expect(page.getByTestId("product-card")).toContainText("Bloco de notas — pacote 1");
+  await page.getByRole("button", { name: "Editar Bloco de notas — pacote 1", exact: true }).click();
+  await expect(page.getByLabel("Nome do produto")).toHaveValue("Bloco de notas — pacote 1");
+  await page.getByLabel("Nome do produto").fill("Produto alterado");
+  await page.getByRole("textbox", { name: "Categoria", exact: true }).fill("Atualizados");
+  await page.getByRole("textbox", { name: "Preço (R$)", exact: true }).fill("99,90");
+  await page.getByLabel("Estoque disponível").fill("7");
+  await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Descrição alterada na edição.");
+  const imageUrl = new URL("/images/papel.jpg", page.url()).href;
+  await page.getByLabel("URL da imagem").fill(imageUrl);
+  const patch = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/products/37"));
+  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
+  expect((await patch).postDataJSON()).toEqual({ name: "Produto alterado", category: "Atualizados", price: "99.90", stockQuantity: 7, description: "Descrição alterada na edição.", imageUrl });
+  const card = page.getByTestId("product-card").filter({ hasText: "Produto alterado" });
+  await expect(card).toHaveAttribute("id", "product-37");
+  await expect(card).toContainText("Atualizado");
+  await expect(card).toContainText("7 em estoque");
+  await expect(card).toContainText("99,90");
+  await expect(page.getByLabel("Buscar por nome")).toHaveValue("");
+  await expect(page.getByLabel("Ordenar por")).toHaveValue("price-desc");
+  await expect(page.getByLabel("Produtos por página")).toHaveValue("20");
+  await page.reload();
+  await expect(page.getByTestId("product-card").first()).toBeVisible();
+  await expect(page.getByText("48 produtos encontrados")).toBeVisible();
+  await page.getByLabel("Buscar por nome").fill("Produto alterado");
+  await expect(page.getByTestId("product-card")).toHaveCount(1);
+  await expect(page.getByTestId("product-card")).toHaveAttribute("id", "product-37");
+  await page.getByRole("button", { name: "Editar Produto alterado", exact: true }).click();
+  await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
+  await expect(page.getByRole("textbox", { name: "Categoria", exact: true })).toHaveValue("Atualizados");
+  await expect(page.getByRole("textbox", { name: "Descrição", exact: true })).toHaveValue("Descrição alterada na edição.");
+  await expect(page.getByLabel("URL da imagem")).toHaveValue(imageUrl);
+});
+
+test("edição retoma o rascunho após 401 e envia apenas o campo alterado", async ({ page }) => {
+  await page.getByRole("button", { name: "Editar Bloco de notas — pacote 1", exact: true }).click();
+  await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
+  await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Rascunho preservado após nova autenticação.");
+  await page.evaluate(() => {
+    const original = window.fetch;
+    window.fetch = (input, init) => {
+      if (init?.method === "PATCH") {
+        window.fetch = original;
+        return Promise.resolve(new Response(JSON.stringify({ message: "Token expirado." }), { status: 401, headers: { "Content-Type": "application/json" } }));
+      }
+      return original(input, init);
+    };
+  });
+  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Acesso administrativo", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Usar acesso de demonstração" }).click();
+  await expect(page.getByRole("heading", { name: "Editar produto", exact: true })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Descrição", exact: true })).toHaveValue("Rascunho preservado após nova autenticação.");
+  const patch = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/products/37"));
+  await page.getByRole("button", { name: "Salvar alterações", exact: true }).click();
+  expect((await patch).postDataJSON()).toEqual({ description: "Rascunho preservado após nova autenticação." });
+  const card = page.getByTestId("product-card").filter({ hasText: "Bloco de notas — pacote 1" });
+  await expect(card).toContainText("Rascunho preservado após nova autenticação.");
+  await expect(card).toContainText("36 em estoque");
+  await expect(card).toContainText("11,90");
+});
+
 test("tela vazia é recuperável e layout móvel não transborda", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.getByLabel("Buscar por nome").fill("produto que não existe");

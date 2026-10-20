@@ -18,7 +18,7 @@ export function LoginForm({ onClose, onSuccess }: { onClose: () => void; onSucce
   function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); void authenticate(String(data.get("username")), String(data.get("password"))); }
   return <Modal title="Acesso administrativo" id="login-dialog-title" onClose={() => { if (!busy) onClose(); }}>
     <form onSubmit={submit} noValidate className="space-y-4 p-6">
-      <p className="text-sm leading-6 text-slate-600">A consulta é pública. Entre para cadastrar produtos.</p>
+      <p className="text-sm leading-6 text-slate-600">A consulta é pública. Entre para cadastrar ou editar produtos.</p>
       <div><label className="label" htmlFor="username">Usuário</label><input autoComplete="username" className="field" id="username" name="username" defaultValue="admin" disabled={busy} /></div>
       <div><label className="label" htmlFor="password">Senha</label><input autoComplete="current-password" type="password" className="field" id="password" name="password" disabled={busy} /></div>
       {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}

@@ -1,12 +1,13 @@
 "use client";
 import { formatPrice, type Product } from "../lib/contracts";
-export function ProductCard({ product, highlighted }: { product: Product; highlighted: boolean }) {
+import { Icon } from "./ui";
+export function ProductCard({ product, highlighted, updated, onEdit }: { product: Product; highlighted: boolean; updated: boolean; onEdit: () => void }) {
   return <article id={`product-${product.id}`} data-testid="product-card" className={`flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-shadow hover:shadow-md ${highlighted ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
     <div className="relative aspect-[2/1] overflow-hidden bg-emerald-50">
       {/* URLs arbitrárias do contrato: img evita exigir uma lista fixa de hosts no otimizador Next. */}
       <img src={product.imageUrl} alt={product.name} width={640} height={320} loading="lazy" className="h-full w-full object-cover"
         onError={(event) => { const image = event.currentTarget; if (!image.src.endsWith("/product-placeholder.svg")) image.src = "/product-placeholder.svg"; }} />
-      {highlighted && <span className="absolute left-3 top-3 rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white">Novo cadastro</span>}
+      {highlighted && <span className="absolute left-3 top-3 rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white">{updated ? "Atualizado" : "Novo cadastro"}</span>}
     </div>
     <div className="flex flex-1 flex-col p-5">
       <span className="mb-3 w-fit max-w-full rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold break-words text-emerald-800">{product.category}</span>
@@ -18,6 +19,7 @@ export function ProductCard({ product, highlighted }: { product: Product; highli
           {product.stockQuantity ? `${product.stockQuantity} em estoque` : "Sem estoque"}
         </span>
       </div>
+      <button type="button" className="btn-secondary mt-4 w-full" aria-label={`Editar ${product.name}`} onClick={onEdit}><Icon name="edit" />Editar</button>
     </div>
   </article>;
 }

@@ -8,7 +8,7 @@ executável com MSW, além da integração com o backend real.
 
 ## O que está implementado
 
-- Listagem, cadastro, busca por nome/faixa de preço e ordenação.
+- Listagem, cadastro e edição pela interface, busca por nome/faixa de preço e ordenação.
 - Estado global com Zustand; paginação de 10 produtos, com opções 20/50/100.
 - Interface responsiva, validação, estados de carregamento/erro/vazio e fallback de imagens.
 - Fotografias ilustrativas locais nos 48 produtos demo, com [fontes e licenças](frontend/public/images/FONTES.md).
@@ -169,6 +169,9 @@ Não execute os servidores locais nas mesmas portas dos containers `api`/`web` j
 - Itens repetidos são rejeitados (400). O preço de compra é mantido mesmo após editar o produto.
 - Filtros/ordenação/paginação da interface são aplicados **nessa ordem**, no frontend.
   Após cadastro, filtros são limpos, ordenação/tamanho mantidos e a página do novo item é exibida.
+- Cada cartão tem **Editar**: após login, abre os dados atuais e salva por PATCH apenas
+  os campos alterados. A edição também limpa filtros e mostra a nova posição do item,
+  mantendo ordenação/tamanho; cancelar não salva. Funciona em mock e API real.
 
 ## Testes
 
@@ -226,9 +229,9 @@ o snapshot é condicionado a Linux, por isso o caminho Docker é o recomendado.
 |---|---|
 | Backend unitário | 48 testes passaram |
 | Backend HTTP/PostgreSQL | 11 testes passaram, incluindo concorrência e rollback |
-| Frontend unitário | 20 testes passaram, incluindo preservação/migração das imagens demo |
-| Navegador mock | 6 testes passaram, incluindo snapshot e larguras 320/375/768 |
-| Navegador real | 2 testes passaram, também na instalação com volume novo |
+| Frontend unitário | 22 testes passaram, incluindo imagens demo e estado pós-edição |
+| Navegador mock | 8 testes passaram, incluindo edição, retomada após 401, snapshot e larguras 320/375/768 |
+| Navegador real | 2 testes passaram, incluindo cadastro/edição/persistência; instalação com volume novo verificada no marco I15 |
 | Builds e typechecks | Passaram em Windows e/ou imagens Linux conforme evidências |
 
 O workflow em `.github/workflows/ci.yml` executa essas verificações em jobs separados.

@@ -11,7 +11,7 @@ execução local não é apresentada como execução remota de CI.
 | ID | Requisito | Estado | Evidência |
 |---|---|---|---|
 | F01 | Listar nome, categoria, preço, descrição e imagem por URL | Verificado | ProductCard e contrato Product; fotos locais carregadas no navegador mock/real (I13/I14/I16) |
-| F02 | Formulário e exibição do produto cadastrado | Verificado | ProductForm, POST e foco pós-cadastro; navegador nos dois modos (I13/I14) |
+| F02 | Formulário e exibição do produto cadastrado | Verificado | ProductForm, POST e foco pós-cadastro; navegador nos dois modos (I13/I14). Edição adicional solicitada e verificada em D16/I18 |
 | F03 | Filtrar nome e faixa de preço | Verificado | selectCatalog, testes combinados com limites inclusivos e intervalo inválido (I12/I13) |
 | F04 | Ordenar resultados | Verificado | Nome A–Z/Z–A e preço crescente/decrescente; desempate por ID; ordenar antes de paginar (I12/I13) |
 | F05 | Next.js e TypeScript | Verificado | Pacote frontend, typegen/typecheck/build em Windows/Linux |
@@ -26,7 +26,7 @@ execução local não é apresentada como execução remota de CI.
 | FX01 | Paginação | Verificado | 10 por padrão, opções20/50/100; filtro → ordenação → paginação (I12/I13) |
 | FX02 | Layout responsivo | Verificado | Navegador em320/375/768 sem transbordamento; desktop1440 e diálogo utilizável (I13) |
 | FX03 | Documentar escolhas | Verificado | README e decisões técnicas, conferidos contra configuração/código |
-| FX04 | Um snapshot de tela | Verificado | Playwright comparou PNG real em tests/__screenshots__/catalogo-desktop.png, Linux/Chromium fixados (I13) |
+| FX04 | Um snapshot de tela | Verificado | Playwright comparou PNG em tests/__screenshots__/catalogo-desktop.png, Linux/Chromium fixados; baseline com botões Editar inspecionado e comparação aprovada (I13/I18) |
 
 ## Backend obrigatório
 
@@ -61,8 +61,8 @@ execução local não é apresentada como execução remota de CI.
 | Q02 | Falha sem alterações parciais | Verificado | Primeira baixa efetivamente ocorreu e foi revertida após perda de disponibilidade do segundo item (I11) |
 | Q03 | Concorrência pelo último item | Verificado | Barreira de teste assegurou duas leituras antes das baixas: apenas201/409, estoque0 e um pedido persistido (I11) |
 | Q04 | Entradas e fluxos críticos backend | Verificado | 48 unitários +11 integrações; duplicatas, quantidades, inexistência e disponibilidade |
-| Q05 | Fluxos/estados frontend | Verificado | Filtros combinados, cadastro, erro/retry/loading, vazio e fallback de imagem (I12–I14) |
-| Q06 | Mock/real compatíveis | Verificado | Mesmos campos/contrato monetário; cadastro e listagem executados nos dois modos |
+| Q05 | Fluxos/estados frontend | Verificado | Filtros combinados, cadastro/edição, erro/retry/loading, vazio, fallback de imagem e rascunho após401 (I12–I14/I18) |
+| Q06 | Mock/real compatíveis | Verificado | Mesmos campos/contrato monetário; cadastro, edição e listagem executados nos dois modos (I18) |
 | Q07 | CI reproduzível | Implementado (não verificado remotamente) | Workflow publicado com backend, frontend e browser. Comandos equivalentes executados localmente; resultado remoto ainda não acompanhado |
 | Q08 | Instalação limpa e instruções | Verificado | Docker sem dependências/artefatos locais; volume novo, migrations, seed e interface real testados (I15). Sem dependência de OpenCode |
 
@@ -75,12 +75,13 @@ execução local não é apresentada como execução remota de CI.
 | I06–I08 | Primeira listagem/API/middleware e base Next verificados em dev/prod, incluindo CSS; marcos iniciais, não substituem testes finais |
 | I09–I10 | POST201/400 com gravação correta, Swagger UI/JSON/YAML e35 unitários iniciais; ampliados pelos testes finais |
 | I11 | `backend`: test:unit →48 testes/3 suítes; test:e2e →11 testes com banco _test. Última integração executada também em imagem Linux, com migrations e limpeza de fixtures |
-| I12 | `frontend`: test:unit →20 testes/3 suítes; pipeline de consulta, dinheiro, C07 pós-cadastro e migração de imagens preservando dados |
-| I13 | Playwright Linux/Chromium:6 testes mock passaram, incluindo screenshot comparado sem atualizar a referência para esconder falha. PNG inspecionado; formulário e imagem fallback verificados |
-| I14 | Playwright:2 testes reais passaram; login/cadastro/persistência/limpeza e falha de conexão com retry/loading |
+| I12 | `frontend`: test:unit →22 testes/3 suítes; pipeline de consulta, dinheiro, C07 pós-cadastro, estado pós-edição e migração de imagens preservando dados |
+| I13 | Playwright Linux/Chromium:8 testes mock passaram, incluindo screenshot comparado após atualização intencional/revisada do botão Editar. PNG inspecionado; formulários, cancelamento,401/rascunho e imagem fallback verificados |
+| I14 | Playwright:2 testes reais passaram; login/cadastro/edição/persistência/limpeza e falha de conexão com retry/loading |
 | I15 | Projeto Compose isolado `suzano-clean`: volume criado vazio, migration/seed, três serviços saudáveis e mesmos2 testes reais passando em portas alternativas. Recursos temporários removidos; instalação normal preservada |
 | I16 | Fotos demo: build/subida Docker saudáveis;48 produtos existentes com preço/estoque e demais campos não visuais intactos,48 imagens atualizadas, seis JPEGs HTTP200; repetição do seed sem alterações. Playwright6 mock +2 reais passaram com fotos carregadas; novo snapshot intencional inspecionado e comparação posterior aprovada |
 | I17 | Roteiro docs/SWAGGER.md exercitado por HTTP: login200, proteção401, produto201/PATCH200, pedido39.80/estoque3, preço histórico, conflitos409, DELETE204/404 e Pendente/Cancelado/default. Fixtures exclusivas removidas, sem alterar produtos preexistentes |
+| I18 | Edição pela interface (D16):22 unitários,8 mock +2 reais passaram; seis campos editáveis, mesmo ID sem duplicação, cancelamento sem salvar, rascunho após401 e PATCH apenas dos campos alterados. Typecheck/builds passaram, snapshot inspecionado/comparado e rebuild manteve os48 produtos intactos. Seed compilado exercitado em memória preservou fotos personalizadas locais/externas |
 
 Builds/typechecks e instalações npm por lockfile passaram nos ambientes indicados.
 Instalações finais reportaram0 vulnerabilidades no npm audit; isso é resultado datado,

@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_MODE, initializeApi } from "../lib/api";
 import { selectCatalog } from "../lib/catalog";
-import type { PageSize, ProductDraft, SortOrder } from "../lib/contracts";
+import type { PageSize, Product, ProductDraft, SortOrder } from "../lib/contracts";
 import { useCatalogStore } from "../store/catalog-store";
 import { LoginForm } from "./login-form";
 import { ProductCard } from "./product-card";
@@ -13,7 +13,8 @@ export function Catalog() {
   const store = useCatalogStore();
   const [loginOpen, setLoginOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
-  const [resumeCreate, setResumeCreate] = useState(false);
+  const [resumeProduct, setResumeProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product>();
   const [draft, setDraft] = useState<ProductDraft>();
   const [toast, setToast] = useState("");
   const [initializationError, setInitializationError] = useState("");
@@ -31,7 +32,9 @@ export function Catalog() {
     document.getElementById(`product-${store.highlightedId}`)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
   }, [store.highlightedId, selected.page]);
 
-  function newProduct() { setDraft(undefined); if (store.token) setProductOpen(true); else { setResumeCreate(true); setLoginOpen(true); } }
+  function openProduct(product?: Product) { setDraft(undefined); setEditingProduct(product); if (store.token) setProductOpen(true); else { setResumeProduct(true); setLoginOpen(true); } }
+  function newProduct() { openProduct(); }
+  function closeProduct() { setProductOpen(false); setDraft(undefined); setEditingProduct(undefined); }
   const loading = store.status === "idle" || store.status === "loading";
   const error = initializationError || store.error;
   const pageNumbers = Array.from({ length: selected.totalPages }, (_, i) => i + 1).filter((page) => page === 1 || page === selected.totalPages || Math.abs(page - selected.page) <= 1);
@@ -44,7 +47,7 @@ export function Catalog() {
         <div className="flex items-center gap-3">
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">{API_MODE === "mock" ? "API simulada" : "API real"}</span>
           {store.username ? <><span className="hidden text-sm text-slate-600 sm:inline">{store.username}</span><button className="text-sm font-semibold text-slate-700 underline-offset-4 hover:underline" onClick={() => { store.logout(); setToast("Sessão encerrada."); }}>Sair</button></>
-            : <button className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-emerald-700" onClick={() => { setResumeCreate(false); setLoginOpen(true); }}><Icon name="login" />Entrar</button>}
+            : <button className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-emerald-700" onClick={() => { setResumeProduct(false); setLoginOpen(true); }}><Icon name="login" />Entrar</button>}
         </div>
       </div>
     </header>
@@ -76,7 +79,7 @@ export function Catalog() {
 
       {error ? <section role="alert" className="rounded-2xl border border-red-200 bg-white p-10 text-center"><Icon name="alert" className="mx-auto mb-3 h-8 w-8 text-red-600" /><h2 className="text-lg font-bold">Não foi possível carregar o catálogo</h2><p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">{error}</p><button className="btn-secondary mt-5" onClick={() => { if (initializationError) window.location.reload(); else void store.load(); }}>Tentar novamente</button></section>
         : loading ? <div aria-label="Carregando produtos" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <div key={i} className="h-96 animate-pulse rounded-2xl bg-slate-200" />)}</div>
-        : selected.items.length ? <section aria-label="Lista de produtos" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{selected.items.map((product) => <ProductCard key={product.id} product={product} highlighted={product.id === store.highlightedId} />)}</section>
+        : selected.items.length ? <section aria-label="Lista de produtos" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{selected.items.map((product) => <ProductCard key={product.id} product={product} highlighted={product.id === store.highlightedId} updated={store.highlightedAction === "updated"} onEdit={() => openProduct(product)} />)}</section>
         : <section className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center"><Icon name="search" className="mx-auto mb-3 h-9 w-9 text-slate-400" /><h2 className="text-xl font-bold">Nenhum produto encontrado</h2><p className="mt-2 text-sm text-slate-600">{store.products.length ? "Experimente outro nome ou ajuste a faixa de preço." : "Comece cadastrando o primeiro produto do catálogo."}</p><button className="btn-secondary mt-5" onClick={store.products.length ? store.clearFilters : newProduct}>{store.products.length ? "Limpar busca" : "Cadastrar primeiro produto"}</button></section>}
 
       {!loading && !error && <footer className="mt-8 flex flex-col items-center justify-between gap-5 border-t border-slate-200 pt-6 sm:flex-row">
@@ -91,7 +94,7 @@ export function Catalog() {
     </main>
 
     {toast && <div role="status" className="fixed bottom-5 left-4 right-4 z-50 mx-auto flex max-w-lg items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950 shadow-lg"><Icon name="check" className="h-5 w-5 shrink-0" /><p>{toast}</p><button className="ml-auto" aria-label="Fechar mensagem" onClick={() => setToast("")}><Icon name="close" /></button></div>}
-    {loginOpen && <LoginForm onClose={() => { setLoginOpen(false); setResumeCreate(false); }} onSuccess={() => { setLoginOpen(false); if (resumeCreate) { setProductOpen(true); setResumeCreate(false); } }} />}
-    {productOpen && <ProductForm draft={draft} onClose={() => setProductOpen(false)} onSuccess={() => { setProductOpen(false); setDraft(undefined); setToast("Produto cadastrado com sucesso. Filtros limpos para mostrar o novo item."); }} onAuthRequired={(values) => { setDraft(values); setProductOpen(false); setResumeCreate(true); setLoginOpen(true); }} />}
+    {loginOpen && <LoginForm onClose={() => { setLoginOpen(false); setResumeProduct(false); setDraft(undefined); setEditingProduct(undefined); }} onSuccess={() => { setLoginOpen(false); if (resumeProduct) { setProductOpen(true); setResumeProduct(false); } }} />}
+    {productOpen && <ProductForm product={editingProduct} draft={draft} onClose={closeProduct} onSuccess={() => { setToast(editingProduct ? "Produto atualizado com sucesso. Filtros limpos para mostrar o item." : "Produto cadastrado com sucesso. Filtros limpos para mostrar o novo item."); closeProduct(); }} onAuthRequired={(values) => { setDraft(values); setProductOpen(false); setResumeProduct(true); setLoginOpen(true); }} />}
   </>;
 }
