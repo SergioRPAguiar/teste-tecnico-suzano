@@ -10,7 +10,7 @@ execução local não é apresentada como execução remota de CI.
 
 | ID | Requisito | Estado | Evidência |
 |---|---|---|---|
-| F01 | Listar nome, categoria, preço, descrição e imagem por URL | Verificado | ProductCard e contrato Product; navegador mock/real (I13/I14) |
+| F01 | Listar nome, categoria, preço, descrição e imagem por URL | Verificado | ProductCard e contrato Product; fotos locais carregadas no navegador mock/real (I13/I14/I16) |
 | F02 | Formulário e exibição do produto cadastrado | Verificado | ProductForm, POST e foco pós-cadastro; navegador nos dois modos (I13/I14) |
 | F03 | Filtrar nome e faixa de preço | Verificado | selectCatalog, testes combinados com limites inclusivos e intervalo inválido (I12/I13) |
 | F04 | Ordenar resultados | Verificado | Nome A–Z/Z–A e preço crescente/decrescente; desempate por ID; ordenar antes de paginar (I12/I13) |
@@ -63,7 +63,7 @@ execução local não é apresentada como execução remota de CI.
 | Q04 | Entradas e fluxos críticos backend | Verificado | 48 unitários +11 integrações; duplicatas, quantidades, inexistência e disponibilidade |
 | Q05 | Fluxos/estados frontend | Verificado | Filtros combinados, cadastro, erro/retry/loading, vazio e fallback de imagem (I12–I14) |
 | Q06 | Mock/real compatíveis | Verificado | Mesmos campos/contrato monetário; cadastro e listagem executados nos dois modos |
-| Q07 | CI reproduzível | Implementado (não verificado remotamente) | Workflow com backend, frontend e browser. Comandos equivalentes executados localmente; execução GitHub aguarda publicação |
+| Q07 | CI reproduzível | Implementado (não verificado remotamente) | Workflow publicado com backend, frontend e browser. Comandos equivalentes executados localmente; resultado remoto ainda não acompanhado |
 | Q08 | Instalação limpa e instruções | Verificado | Docker sem dependências/artefatos locais; volume novo, migrations, seed e interface real testados (I15). Sem dependência de OpenCode |
 
 ## Evidências executadas
@@ -75,10 +75,12 @@ execução local não é apresentada como execução remota de CI.
 | I06–I08 | Primeira listagem/API/middleware e base Next verificados em dev/prod, incluindo CSS; marcos iniciais, não substituem testes finais |
 | I09–I10 | POST201/400 com gravação correta, Swagger UI/JSON/YAML e35 unitários iniciais; ampliados pelos testes finais |
 | I11 | `backend`: test:unit →48 testes/3 suítes; test:e2e →11 testes com banco _test. Última integração executada também em imagem Linux, com migrations e limpeza de fixtures |
-| I12 | `frontend`: test:unit →17 testes/2 suítes; pipeline de consulta, dinheiro e C07 pós-cadastro |
+| I12 | `frontend`: test:unit →20 testes/3 suítes; pipeline de consulta, dinheiro, C07 pós-cadastro e migração de imagens preservando dados |
 | I13 | Playwright Linux/Chromium:6 testes mock passaram, incluindo screenshot comparado sem atualizar a referência para esconder falha. PNG inspecionado; formulário e imagem fallback verificados |
 | I14 | Playwright:2 testes reais passaram; login/cadastro/persistência/limpeza e falha de conexão com retry/loading |
 | I15 | Projeto Compose isolado `suzano-clean`: volume criado vazio, migration/seed, três serviços saudáveis e mesmos2 testes reais passando em portas alternativas. Recursos temporários removidos; instalação normal preservada |
+| I16 | Fotos demo: build/subida Docker saudáveis;48 produtos existentes com preço/estoque e demais campos não visuais intactos,48 imagens atualizadas, seis JPEGs HTTP200; repetição do seed sem alterações. Playwright6 mock +2 reais passaram com fotos carregadas; novo snapshot intencional inspecionado e comparação posterior aprovada |
+| I17 | Roteiro docs/SWAGGER.md exercitado por HTTP: login200, proteção401, produto201/PATCH200, pedido39.80/estoque3, preço histórico, conflitos409, DELETE204/404 e Pendente/Cancelado/default. Fixtures exclusivas removidas, sem alterar produtos preexistentes |
 
 Builds/typechecks e instalações npm por lockfile passaram nos ambientes indicados.
 Instalações finais reportaram0 vulnerabilidades no npm audit; isso é resultado datado,
@@ -90,7 +92,7 @@ não promessa sobre futuras bases de advisories. Nenhum benchmark de capacidade 
 |---|---|---|---|
 | E01 | Publicar código e compartilhar link | Repositório de entrega | https://github.com/SergioRPAguiar/teste-tecnico-suzano — código e histórico na branch main |
 | E02 | Prazo de cinco dias úteis do enunciado | Sob controle do responsável | Não é uma verificação de código |
-| E03 | Instruções de execução/testes | Verificado | README e docs/INSTALACAO.md; iniciadores Windows/Linux, exemplos de ambiente e roteiro Swagger. Windows build/subida passaram; Bash preflight/subida sem build passaram no WSL (D14) |
+| E03 | Instruções de execução/testes | Verificado | README, docs/INSTALACAO.md e docs/SWAGGER.md; iniciadores Windows/Linux, exemplos de ambiente e roteiro Swagger detalhado (I17). Windows build/subida passaram; Bash preflight/subida sem build passaram no WSL (D14) |
 
 **Auditoria:** obrigatórios e extras técnicos do PDF implementados e verificados localmente.
 Publicação e histórico são verificáveis diretamente no repositório acima. O resultado

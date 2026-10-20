@@ -242,14 +242,14 @@ Detalhamento da inicialização Next.js/TypeScript/Tailwind já prevista na etap
   limitado. Standalone Next usado só no Docker; manifesto final é validado durante build.
 - Jest/ts-jest e Supertest:48 unitários backend e11 integrações PostgreSQL. Banco de
   teste com sufixo obrigatório _test, migrations próprias e limpeza só de fixtures.
-- Frontend:17 unitários e Playwright com6 fluxos mock (incluindo PNG de tela) +2 reais.
+- Frontend:20 unitários e Playwright com6 fluxos mock (incluindo PNG de tela) +2 reais.
   Snapshot comparado em Linux/Chromium/ambiente fixados; não confundir com teste de comportamento.
 - Overrides YAML corrigem transitivas, mantendo API load usada pelo loader Istanbul
   (compatibilidade conferida) e versão5 corrigida no Swagger. Lockfile regenerado limpo
   para preservar opcionais multiplataforma; npm ci Linux e Windows conferidos nos marcos.
 - Instalação com volume novo e interface real passou em projeto Docker isolado. Nenhum
   arquivo pessoal, OpenCode ou código gerado local é necessário à execução.
-- CI configurado para as suítes; primeira execução remota depende da publicação Git.
+- CI configurado para as suítes; código publicado e resultado remoto consultável no GitHub Actions.
   Não foi declarado benchmark de capacidade de produção nem aprovação remota não executada.
 
 ## D14 — Inicialização assistida Windows/Linux — autorizada
@@ -267,3 +267,26 @@ pasta do projeto, com três serviços saudáveis. Bash teve sintaxe verificada e
 preflight no Ubuntu/WSL e subida com imagens existentes via --sem-build concluídos.
 O build completo via WSL em /mnt/d excedeu a janela de600s ao transferir contexto;
 não foi classificado como concluído. Guia orienta evitar essa travessia de filesystem.
+
+## D15 — Fotografias demo e roteiro Swagger — autorizados e verificados
+
+O responsável solicitou imagens reais ilustrativas no catálogo e instruções de Swagger
+detalhadas para iniciantes, autorizando os testes, a atualização visual e a publicação
+dessas mudanças. Motivo: tornar a demonstração visual e o teste manual mais claros.
+Alternativa considerada: manter o placeholder e o roteiro curto de operações.
+
+- Seis JPEGs locais em frontend/public/images, compartilhados pelos 48 itens demo.
+  Autores, fontes, licenças e redimensionamento registrados em images/FONTES.md.
+  As fotografias são ilustrativas; não representam imagens oficiais de produtos Suzano.
+- Seed atualiza somente a imagem gerenciada do item demo encontrado pelo nome,
+  preservando preço, estoque, demais campos e URLs personalizadas. Não muda o schema.
+  No mock, migra apenas o placeholder local dos IDs/nomes demo, sem limpar localStorage.
+- Formulário e exemplos OpenAPI usam a foto local papel.jpg como sugestão editável.
+- docs/SWAGGER.md detalha Try it out/Execute, login/Authorize, IDs reais, JSONs,
+  total/estoque, preço histórico, conflitos e exclusão; instalação e README apontam o guia.
+- Verificação: typecheck e 20 unitários frontend; build backend Windows e builds Docker;
+  48 produtos comparados antes/depois com todos os campos não visuais preservados,
+  seis JPEGs HTTP 200 e repetição do seed sem alterações. Playwright Linux: 6 mock e 2 reais
+  passaram, incluindo fotos carregadas. Snapshot atualizado intencionalmente, inspecionado
+  e depois comparado com sucesso sem atualização. Roteiro exercitado por HTTP com
+  fixtures exclusivas removidas ao final, sem alterar os registros preexistentes.

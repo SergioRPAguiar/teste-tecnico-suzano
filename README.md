@@ -11,6 +11,7 @@ executável com MSW, além da integração com o backend real.
 - Listagem, cadastro, busca por nome/faixa de preço e ordenação.
 - Estado global com Zustand; paginação de 10 produtos, com opções 20/50/100.
 - Interface responsiva, validação, estados de carregamento/erro/vazio e fallback de imagens.
+- Fotografias ilustrativas locais nos 48 produtos demo, com [fontes e licenças](frontend/public/images/FONTES.md).
 - CRUD de produtos; criação/listagem de pedidos; total calculado no servidor.
 - Preços históricos nos itens, consistência transacional e proteção contra disputa de estoque.
 - Middleware de log, Swagger, autenticação JWT e ambiente completo em Docker.
@@ -51,7 +52,8 @@ verificado com Docker 27.4.0 e Compose 2.31.0. As imagens base estão fixadas po
 O Compose inicia PostgreSQL, aplica migrations/carrega o seed por um serviço de execução
 única (`migrate`) e inicia API/frontend. `migrate` terminar com código 0 é esperado;
 `db`, `api` e `web` devem ficar saudáveis. O seed adiciona 48 produtos de demonstração,
-é idempotente e não sobrescreve registros existentes.
+é idempotente e preserva os dados existentes. Em catálogos antigos, atualiza apenas
+as imagens demo gerenciadas, sem mudar preço/estoque ou substituir fotos personalizadas.
 
 | Serviço | Endereço padrão |
 |---|---|
@@ -60,6 +62,8 @@ O Compose inicia PostgreSQL, aplica migrations/carrega o seed por um serviço de
 | Swagger | http://localhost:3001/docs |
 | OpenAPI JSON / YAML | `/docs-json` / `/docs-yaml` na API |
 | PostgreSQL para ferramentas locais | `127.0.0.1:5433` |
+
+**Nunca usou Swagger?** Siga o [roteiro do primeiro clique ao pedido, com JSON e resultados esperados](docs/SWAGGER.md).
 
 **Acesso de demonstração:** usuário `admin`, senha `Suzano@123`.
 A leitura de produtos é pública. Cadastros/alterações/exclusões e pedidos exigem login.
@@ -95,6 +99,8 @@ O modo padrão é **mock**, sem necessidade de API/banco. MSW intercepta chamada
 compatíveis com os contratos reais. Há 48 produtos iniciais; cadastros fictícios são
 salvos no armazenamento local do navegador. O login é simulado, com o mesmo acesso
 de demonstração; o botão de acesso demo está disponível nesse modo.
+Os placeholders antigos dos itens demo são substituídos pelas fotos locais, preservando
+cadastros e alterações salvos no navegador.
 
 Para selecionar o modo, crie `frontend/.env.local` a partir de
 `frontend/.env.local.example`:
@@ -206,7 +212,8 @@ npm run test:real:docker
 
 O teste cadastra um produto exclusivo e o exclui ao terminar. Se personalizar a conta,
 exporte `ADMIN_USERNAME`/`ADMIN_PASSWORD` para o runner. O runner também admite
-`E2E_COMPOSE_PROJECT` e `E2E_PUBLIC_API_URL` para instalações isoladas/portas diferentes.
+`E2E_COMPOSE_PROJECT`, `E2E_PUBLIC_API_URL` e `E2E_PUBLIC_WEB_URL` para instalações
+isoladas/portas diferentes; as URLs públicas devem coincidir com as usadas pela aplicação.
 
 Para uma atualização visual **intencional e revisada**, existe
 `npm run test:visual:docker:update`. Não atualize a referência apenas para esconder uma regressão.
@@ -219,7 +226,7 @@ o snapshot é condicionado a Linux, por isso o caminho Docker é o recomendado.
 |---|---|
 | Backend unitário | 48 testes passaram |
 | Backend HTTP/PostgreSQL | 11 testes passaram, incluindo concorrência e rollback |
-| Frontend unitário | 17 testes passaram |
+| Frontend unitário | 20 testes passaram, incluindo preservação/migração das imagens demo |
 | Navegador mock | 6 testes passaram, incluindo snapshot e larguras 320/375/768 |
 | Navegador real | 2 testes passaram, também na instalação com volume novo |
 | Builds e typechecks | Passaram em Windows e/ou imagens Linux conforme evidências |

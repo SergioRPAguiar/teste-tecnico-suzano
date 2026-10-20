@@ -171,37 +171,14 @@ Você pode fechar o terminal depois: os containers continuam em segundo plano.
 
 ## Roteiro de teste manual — Swagger
 
-1. Acesse http://localhost:3001/docs.
-2. Abra **POST /auth/login → Try it out**, use o JSON abaixo e clique **Execute**:
+**[Abra o roteiro completo: Swagger do primeiro clique ao pedido concluído](SWAGGER.md).**
 
-   ```json
-   { "username": "admin", "password": "Suzano@123" }
-   ```
+Ele explica os botões da tela, onde colar cada JSON, como copiar/autorizar o token,
+como criar um produto próprio e usar seu ID real, como conferir total/estoque e
+como interpretar cada resultado. Inclui exemplos completos e contas esperadas.
 
-3. Copie somente o valor de `accessToken`, sem aspas. Clique em **Authorize** no
-   topo, cole o token (sem escrever `Bearer`), confirme e feche a janela.
-4. Execute **GET /products** e anote um ID real com estoque disponível.
-5. Teste **PATCH /products/{id}** com esse ID e, por exemplo, `{"price":"25.00"}`.
-   A API usa ponto decimal e preço como **string**, não número.
-6. Em **POST /orders**, substitua `123` por um ID existente:
-
-   ```json
-   {
-     "status": "Concluído",
-     "items": [{ "productId": 123, "quantity": 1 }]
-   }
-   ```
-
-7. Consulte **GET /orders** para ver o total calculado e o preço histórico. Consulte
-   produtos novamente: o estoque do item deve ter diminuído em uma unidade.
-8. Tente excluir esse produto: deve retornar **409**, pois ele foi usado em pedido.
-   Para testar exclusão com sucesso, cadastre outro produto e exclua-o antes de usá-lo.
-9. Experimente quantidade maior que o estoque: **409**, sem baixa parcial.
-
-Status omitido significa **Pendente**. Pendente/Cancelado não baixam ou reservam estoque.
-Os três status são escolhidos na criação; não existe rota de transição posterior.
-401 significa token ausente/inválido/expirado; faça login novamente após uma hora.
-400 indica entrada inválida; 404 indica ID/rota inexistente.
+Endereço: **http://localhost:3001/docs**. Não use 3000/docs.
+Siga os passos na ordem: o pedido usa o produto criado durante o próprio roteiro.
 
 ## Parar, voltar e consultar logs
 
