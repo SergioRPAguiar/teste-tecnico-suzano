@@ -13,6 +13,6 @@ export class ProductResponseDto {
   price!: string;
   @ApiProperty({ type: "integer", minimum: 0, example: 10 })
   stockQuantity!: number;
-  @ApiProperty({ format: "uri", example: "https://example.com/papel-a4.jpg" })
+  @ApiProperty({ format: "uri", example: "http://localhost:3000/images/papel.jpg" })
   imageUrl!: string;
 }

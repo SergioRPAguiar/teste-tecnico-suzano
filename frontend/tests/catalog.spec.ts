@@ -3,6 +3,9 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("product-card").first()).toBeVisible();
+  const image = page.getByTestId("product-card").first().locator("img");
+  await expect(image).toHaveAttribute("src", /\/images\/notas\.jpg$/);
+  await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
 });
 
 test("combina filtros, ordena antes de paginar e oferece 10/20/50/100", async ({ page }) => {

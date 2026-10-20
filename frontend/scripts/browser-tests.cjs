@@ -20,6 +20,6 @@ docker(["run", "--rm", "--ipc=host",
   "--mount", `type=bind,source=${tests},target=/app/tests`,
   "--mount", `type=bind,source=${results},target=/app/test-results`,
   ...(real ? ["--network", `${process.env.E2E_COMPOSE_PROJECT ?? "suzano-case"}_default`, "-e", "E2E_MODE=real", "-e", "E2E_BASE_URL=http://web:3000", "-e", "E2E_API_URL=http://api:3001",
-    ...["ADMIN_USERNAME", "ADMIN_PASSWORD", "E2E_PUBLIC_API_URL"].flatMap((key) => process.env[key] ? ["-e", key] : [])] : []),
+    ...["ADMIN_USERNAME", "ADMIN_PASSWORD", "E2E_PUBLIC_API_URL", "E2E_PUBLIC_WEB_URL"].flatMap((key) => process.env[key] ? ["-e", key] : [])] : []),
   "suzano-case-visual", "npm", "run", update ? "test:update-snapshots" : "test:e2e",
 ]);

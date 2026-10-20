@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test("interface real autentica, cadastra e consulta o produto no PostgreSQL", async ({ page, request }) => {
   const apiUrl = process.env.E2E_API_URL ?? "http://localhost:3001";
   const publicApiUrl = process.env.E2E_PUBLIC_API_URL ?? "http://localhost:3001";
+  const publicWebUrl = process.env.E2E_PUBLIC_WEB_URL ?? "http://localhost:3000";
   const username = process.env.ADMIN_USERNAME ?? "admin";
   const password = process.env.ADMIN_PASSWORD ?? "Suzano@123";
   const name = `Produto integração real ${Date.now()}`;
@@ -10,10 +11,14 @@ test("interface real autentica, cadastra e consulta o produto no PostgreSQL", as
   expect(login.ok()).toBeTruthy();
   const { accessToken } = await login.json();
   if (process.env.E2E_API_URL) await page.route(`${publicApiUrl}/**`, (route) => route.continue({ url: route.request().url().replace(publicApiUrl, apiUrl) }));
+  if (process.env.E2E_BASE_URL) await page.route(`${publicWebUrl}/images/**`, (route) => route.continue({ url: route.request().url().replace(publicWebUrl, process.env.E2E_BASE_URL!) }));
   try {
     await page.goto("/");
     await expect(page.getByText("API real", { exact: true })).toBeVisible();
     await expect(page.getByTestId("product-card").first()).toBeVisible();
+    const photo = page.getByTestId("product-card").first().locator("img");
+    await expect(photo).toHaveAttribute("src", /\/images\/notas\.jpg$/);
+    await expect.poll(() => photo.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await page.getByRole("button", { name: "Novo produto", exact: true }).click();
     await page.getByLabel("Usuário", { exact: true }).fill(username);
     await page.getByLabel("Senha", { exact: true }).fill(password);

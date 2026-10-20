@@ -28,7 +28,7 @@ export function ProductForm({ draft, onClose, onSuccess, onAuthRequired }: {
   const labels: Record<keyof ProductDraft, string> = { name: "Nome do produto", category: "Categoria", description: "Descrição", price: "Preço (R$)", stockQuantity: "Estoque inicial", imageUrl: "URL da imagem" };
   function field(key: keyof ProductDraft, placeholder?: string) {
     const shared = { id: `product-${key}`, name: key, className: "field", required: true, disabled: busy, "aria-invalid": !!errors[key], "aria-describedby": errors[key] ? `${key}-error` : undefined };
-    const initial = draft?.[key] ?? (key === "imageUrl" ? `${window.location.origin}/product-placeholder.svg` : "");
+    const initial = draft?.[key] ?? (key === "imageUrl" ? `${window.location.origin}/images/papel.jpg` : "");
     return <div className={key === "description" || key === "imageUrl" || key === "name" || key === "category" ? "sm:col-span-2" : ""}>
       <label className="label" htmlFor={shared.id}>{labels[key]} <span aria-hidden="true" className="text-emerald-700">*</span></label>
       {key === "description" ? <textarea {...shared} rows={3} defaultValue={initial} placeholder="Descreva as características do produto" />

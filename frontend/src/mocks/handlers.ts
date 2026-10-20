@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { API_URL } from "../lib/api";
 import { toApiPrice, validateProduct, type Product } from "../lib/contracts";
-import { demoProducts } from "./data";
+import { demoProducts, upgradeDemoImages } from "./data";
 
 const KEY = "suzano-case-products-v1";
 function products(): Product[] {
@@ -10,7 +10,13 @@ function products(): Product[] {
     if (Array.isArray(saved) && saved.every((item) => typeof item.id === "number" && validateProduct({
       name: item.name, category: item.category, description: item.description, price: item.price,
       stockQuantity: item.stockQuantity, imageUrl: item.imageUrl,
-    }).data)) return saved;
+    }).data)) {
+      const upgraded = upgradeDemoImages(saved);
+      if (upgraded.some((product, index) => product !== saved[index])) {
+        try { localStorage.setItem(KEY, JSON.stringify(upgraded)); } catch { /* Preserva a sessão mesmo se o armazenamento estiver cheio. */ }
+      }
+      return upgraded;
+    }
   } catch { /* Cache antigo/corrompido não impede a demonstração. */ }
   return demoProducts();
 }

@@ -46,7 +46,7 @@ export class CreateProductDto {
   @Max(2147483647)
   stockQuantity!: number;
 
-  @ApiProperty({ format: "uri", example: "https://example.com/papel-a4.jpg" })
+  @ApiProperty({ format: "uri", example: "http://localhost:3000/images/papel.jpg" })
   @Transform(trimText)
   @IsString()
   @IsNotEmpty()
