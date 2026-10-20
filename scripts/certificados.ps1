@@ -1,4 +1,5 @@
 function Export-WindowsRootCaBundle {
+    param([string]$Directory = [System.IO.Path]::GetTempPath())
     $blocked = New-Object 'System.Collections.Generic.HashSet[string]'
     $seen = New-Object 'System.Collections.Generic.HashSet[string]'
     $pem = New-Object System.Text.StringBuilder
@@ -23,9 +24,8 @@ function Export-WindowsRootCaBundle {
         }
     }
     if ($seen.Count -eq 0) { throw 'Nenhuma CA raiz confiavel foi encontrada no Windows.' }
-    $temp = [System.IO.Path]::GetTempPath()
-    if (-not (Test-Path -LiteralPath $temp -PathType Container)) { throw 'Diretorio temporario do Windows indisponivel.' }
-    $path = Join-Path $temp ("suzano-case-ca-{0}.pem" -f [guid]::NewGuid().ToString('N'))
+    if (-not (Test-Path -LiteralPath $Directory -PathType Container)) { throw 'Diretorio para o bundle temporario indisponivel.' }
+    $path = Join-Path $Directory (".suzano-build-ca-{0}.pem" -f [guid]::NewGuid().ToString('N'))
     try {
         [System.IO.File]::WriteAllText($path, $pem.ToString(), (New-Object System.Text.UTF8Encoding($false)))
         return [pscustomobject]@{ Path = $path; Count = $seen.Count }

@@ -13,6 +13,10 @@
   secret system_ca; build-with-ca.sh aplica NODE_EXTRA_CA_CERTS só naquele processo.
   Não versionar/incorporar certificados do host às imagens nem desativar TLS. Arquivo
   temporário Windows deve ser limpo em finally; Verificar/SemBuild não o geram.
+- CAs temporárias `.suzano-build-ca-*` ficam na raiz, ignoradas no Git/Docker e
+  removidas no encerramento (PowerShell finally/Bash EXIT). Windows usa buildx build
+  --load por serviço a partir do config Compose e sobe com up --no-build; preserva
+  estágios/argumentos/tags do projeto e evita a conversão de caminhos pelo Bake.
 - Compose sobe db → migrate (migrations/seed, termina0) → api → web. `down` preserva
   volume; `down --volumes` remove dados. POSTGRES_* só inicializa volume vazio.
 - Padrões: frontend3000, API3001, PostgreSQL local5433. Exemplos de ambiente separados

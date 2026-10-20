@@ -37,6 +37,9 @@ e compila a aplicação; aguarde a mensagem final. Interface3000 e Swagger3001/d
 Em redes corporativas, os iniciadores fornecem automaticamente ao build as CAs raiz
 confiáveis do Windows ou o bundle do Linux. Não é preciso exportar certificados à mão;
 a validação HTTPS permanece ativa. [Detalhes e diagnóstico](docs/INSTALACAO.md#certificados-em-redes-corporativas).
+O iniciador Windows constrói as imagens com Buildx e usa Compose para iniciar os
+serviços, evitando incompatibilidades do Bake com caminhos Windows. Fluxo verificado
+também com o executável oficial do Compose 5.6.0.
 
 ### Execução manual — rede com certificados públicos
 

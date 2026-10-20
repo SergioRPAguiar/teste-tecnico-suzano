@@ -338,3 +338,27 @@ A solução mantém a stack e o mesmo comando de inicialização.
   aprovados e 48 produtos/.env preservados. Bash: sintaxe, seleção de CA com Docker
   substituído, preflight e subida real sem build no WSL aprovados. Não se declara um
   build completo WSL nem execução na rede corporativa do responsável nesta máquina.
+
+## D18 — Compatibilidade do build Windows com Bake — correção de D17
+
+O responsável retornou com falha antes de executar o Dockerfile: `failed to execute
+bake`, usando Compose5.6.0. A adaptação de instalação e sua publicação já haviam
+sido autorizadas em D17; esta etapa corrige a compatibilidade desse mesmo fluxo.
+
+- Reproduzida a rejeição do secret fora do contexto com a proteção de leitura do
+  Bake ativa. Movido para arquivo temporário na raiz, ignorado por Git/Docker e
+  removido ao encerrar. Linux faz uma cópia temporária do bundle no mesmo limite.
+- Teste adicional com Compose5.6.0 oficial e Buildx0.19.2 local revelou duplicação
+  do caminho absoluto do Dockerfile no adaptador Bake. No Windows, Buildx constrói
+  migrate/api/web sequencialmente com --load; Compose continua responsável pela
+  configuração e pela subida db→migrate→api→web com --no-build. Nenhuma troca de stack.
+- Nomes de imagens, contextos, Dockerfiles, estágios e argumentos vêm do config
+  Compose normalizado. CA permanece secret de build; TLS e proteções de filesystem
+  continuam ativos. Não se utiliza builder clássico nem se desativam verificações.
+- Validação: build/subida completos com Compose 2.31.0 e 5.6.0 reais; 48 produtos e `.env`
+  preservados. Função pública de build exercitada em diretório com espaços; secret
+  disponível no RUN, excluído de COPY e ausente na camada seguinte. Sucesso/falha
+  de build/falha de subida/Verificar/SemBuild exercitados, incluindo limpeza.
+  Bash: limpeza em sucesso/falha, sintaxe e subida real sem build verificadas no WSL.
+  Dois testes reais de navegador aprovados nas imagens resultantes. O certificado
+  e a versão de Buildx específicos do computador corporativo ainda serão revalidados lá.

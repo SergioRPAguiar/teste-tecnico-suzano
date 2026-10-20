@@ -2,6 +2,7 @@
 .local
 .opencode
 opencode.json
+.suzano-build-ca-*
 *.pdf
 **/node_modules
 **/.next

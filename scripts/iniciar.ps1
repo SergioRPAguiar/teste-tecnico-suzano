@@ -11,6 +11,28 @@ function Docker-Step([string[]]$Arguments) {
     if ($LASTEXITCODE -ne 0) { throw "Docker falhou: docker $($Arguments -join ' ')" }
 }
 
+function Build-ProjectImages($Config, [string]$CaFile) {
+    # Evita a conversao Compose -> Bake de caminhos Windows. Mantem o Compose
+    # como fonte de nomes, contextos, estagios e argumentos das tres imagens.
+    foreach ($serviceName in @('migrate', 'api', 'web')) {
+        $service = $Config.services.$serviceName
+        $build = $service.build
+        if ($null -eq $build) { throw "Servico $serviceName sem configuracao de build." }
+        $image = if ($service.image) { [string]$service.image } else { "$($Config.name)-$serviceName" }
+        $dockerfile = if ($build.dockerfile) { [string]$build.dockerfile } else { 'Dockerfile' }
+        if (-not [System.IO.Path]::IsPathRooted($dockerfile)) { $dockerfile = Join-Path $build.context $dockerfile }
+        $arguments = @('buildx', 'build', '--load', '--progress', 'plain', '--file', $dockerfile, '--tag', $image)
+        if ($build.target) { $arguments += @('--target', [string]$build.target) }
+        foreach ($argument in $build.args.PSObject.Properties) {
+            $arguments += @('--build-arg', "$($argument.Name)=$($argument.Value)")
+        }
+        if ($CaFile) { $arguments += @('--secret', "id=system_ca,src=$CaFile") }
+        $arguments += @([string]$build.context)
+        Write-Host "Construindo $serviceName ($image) com Buildx."
+        Docker-Step $arguments
+    }
+}
+
 try {
     Write-Host 'Case Suzano - verificacao do ambiente'
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
@@ -34,21 +56,24 @@ try {
     if ($Verificar) { Write-Host 'Pre-requisitos e configuracao validos. Nenhum servico foi alterado.'; exit 0 }
 
     if (-not $SemBuild) {
+        Docker-Step @('buildx', 'version')
         . (Join-Path $PSScriptRoot 'certificados.ps1')
-        $caBundle = Export-WindowsRootCaBundle
+        # Bake limita a leitura ao contexto; o PEM fica dentro dele, mas ignorado
+        # pelo Git/Docker e fornecido exclusivamente como secret de build.
+        $caBundle = Export-WindowsRootCaBundle -Directory $root
         $env:SUZANO_BUILD_CA_FILE = $caBundle.Path
         $composeArgs += @('-f', (Join-Path $root 'compose.ca.yaml'))
         Docker-Step ($composeArgs + @('config', '--quiet'))
         Write-Host "Build com $($caBundle.Count) CAs raiz confiaveis do Windows (uso temporario)."
     }
 
-    $buildOption = if ($SemBuild) { '--no-build' } else { '--build' }
-    Write-Host 'Iniciando. Na primeira execucao, o build baixa imagens e pode levar varios minutos.'
-    Docker-Step ($composeArgs + @('up', '-d', $buildOption, '--wait', '--wait-timeout', '180'))
-    Docker-Step ($composeArgs + @('ps', '-a'))
     $json = & docker @composeArgs config --format json
-    if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel consultar os enderecos finais.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel consultar a configuracao do projeto.' }
     $config = ($json -join "`n") | ConvertFrom-Json
+    if (-not $SemBuild) { Build-ProjectImages $config $caBundle.Path }
+    Write-Host 'Iniciando banco, migrations, API e interface.'
+    Docker-Step ($composeArgs + @('up', '-d', '--no-build', '--wait', '--wait-timeout', '180'))
+    Docker-Step ($composeArgs + @('ps', '-a'))
     $webPort = $config.services.web.ports[0].published
     $apiPort = $config.services.api.ports[0].published
     Write-Host "`nAplicacao pronta: http://localhost:$webPort"

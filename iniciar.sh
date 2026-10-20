@@ -3,6 +3,13 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CHECK=false
 BUILD_OPTION=--build
+CA_TEMP=''
+cleanup() {
+  if [[ -n "$CA_TEMP" ]]; then
+    rm -f -- "$CA_TEMP" || echo "Nao foi possivel remover o bundle temporario: $CA_TEMP" >&2
+  fi
+}
+trap cleanup EXIT
 for option in "$@"; do
   case "$option" in
     --verificar) CHECK=true ;;
@@ -38,7 +45,11 @@ if $CHECK; then echo 'Pre-requisitos e configuracao validos. Nenhum servico foi 
 if [[ "$BUILD_OPTION" == '--build' ]]; then
   for bundle in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/cert.pem; do
     if [[ -r "$bundle" && -s "$bundle" ]]; then
-      export SUZANO_BUILD_CA_FILE="$bundle"
+      # Bake permite leitura do contexto; a copia fica nele, ignorada pelo
+      # Git/Docker, e e enviada somente pelo canal de secrets do BuildKit.
+      CA_TEMP="$(mktemp "$ROOT/.suzano-build-ca-XXXXXXXX")"
+      cp -- "$bundle" "$CA_TEMP"
+      export SUZANO_BUILD_CA_FILE="$CA_TEMP"
       COMPOSE+=(-f "$ROOT/compose.ca.yaml")
       "${COMPOSE[@]}" config --quiet
       echo 'Build com as CAs confiaveis do sistema Linux (uso temporario).'
