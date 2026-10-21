@@ -185,53 +185,132 @@ Não execute os servidores locais nas mesmas portas dos containers `api`/`web` j
 
 ## Testes
 
-### Backend — na pasta `backend/`
+**[Guia de testes: preparação, o que cada teste verifica e como interpretar os resultados](docs/TESTES.md)**
+
+Os iniciadores sobem a aplicação, mas não executam as suítes. Você pode escolher quais
+verificações rodar; os grupos abaixo têm objetivos e pré-requisitos diferentes.
+
+| Grupo | O que verifica | Precisa de banco ou navegador? |
+|---|---|---|
+| Typecheck | Compatibilidade dos tipos TypeScript; não executa os fluxos da aplicação | Não |
+| Unitários backend | Validação dos produtos e regras de pedidos, como total e disponibilidade | Não; acesso ao banco é substituído nos testes |
+| Integração backend | Requisições HTTP, autenticação, persistência, rollback e concorrência | PostgreSQL real com banco `_test`; não usa navegador |
+| Unitários frontend | Filtros → ordenação → paginação, preço em centavos e estado pós-cadastro | Não |
+| Navegador mock + visual | Interações da tela, responsividade, erros e comparação do PNG de referência | Chromium dentro do Docker; não precisa de backend/banco |
+| Navegador real | Cadastro pela interface, gravação no PostgreSQL e recuperação de erro de conexão | Compose completo em execução e navegador de teste no Docker |
+
+### Antes dos comandos: instalar as dependências no ambiente correto
+
+**O build Docker não cria `node_modules` nas pastas do computador.** Para executar
+TypeScript/Jest diretamente no terminal, instale as dependências de cada pacote.
+`npm run` executa um script; ele não instala ferramentas ausentes.
+
+Na pasta **`backend/`**, ao preparar um clone ou após mudanças nas dependências:
+
+```sh
+npm ci --include=dev
+npm run db:generate
+```
+
+Na pasta **`frontend/`**:
+
+```sh
+npm ci --include=dev
+```
+
+Node.js 22.12+ na linha 22 ou 24+ e npm são necessários para esses comandos locais.
+`--include=dev` inclui TypeScript/Jest mesmo se o npm estiver configurado para omitir
+dependências de desenvolvimento. Não há instalação npm na raiz. Essa preparação não
+precisa ser repetida antes de cada teste.
+
+### 1. Backend: tipos e regras isoladas — pasta `backend/`
 
 ```sh
 npm run typecheck
 npm run test:unit
 ```
 
-Os unitários não iniciam API ou banco. Para a integração HTTP com PostgreSQL real,
-crie **`backend/.env.test` a partir de `backend/.env.test.example`**, mantenha o banco
-do Compose ativo e execute:
+Conferem, por exemplo, preço como string decimal, estoque inteiro, campos inválidos,
+atualização parcial, total calculado com preços do servidor e baixa apenas em Concluído.
+**Não é necessário subir a API ou o banco para os unitários.**
+
+### 2. Backend: HTTP e PostgreSQL reais — pasta `backend/`
+
+Depois da preparação, crie **`backend/.env.test` a partir de `backend/.env.test.example`**
+se ainda não existir. Confira usuário, senha e porta. Na raiz, o `.env` deve estar
+preparado e o banco ativo (`docker compose up -d --wait db`). Então, em `backend/`:
 
 ```sh
 npm run test:e2e
 ```
 
-O runner exige banco com sufixo `_test`, cria-o quando necessário, aplica migrations
-e remove apenas suas fixtures. O usuário de desenvolvimento precisa poder criar esse banco.
-O teste de concorrência sincroniza duas transações **depois de ambas lerem a última
-unidade**, antes da baixa: não é apenas uma execução sequencial disfarçada.
+O runner cria o banco `_test` quando necessário e aplica migrations. A suíte inicia
+uma aplicação Nest própria, envia requisições HTTP e limpa os registros de teste ao
+final. Não é preciso subir outra API na porta 3001.
 
-### Frontend — na pasta `frontend/`
+São verificadas autenticação JWT, CRUD, preço histórico, estoque insuficiente, rollback
+e disputa pela última unidade. A concorrência sincroniza as duas leituras antes da
+baixa: apenas um pedido pode concluir. **Use somente um banco exclusivo terminado em
+`_test`, nunca o banco de uso normal.** Passos para configurar em Windows/Linux estão no guia.
+
+### 3. Frontend: lógica isolada — pasta `frontend/`
 
 ```sh
+npm run typecheck
 npm run test:unit
+```
+
+Verifica consulta combinada, limites de preço, desempate de ordenação, paginação,
+exibição do produto após cadastro, conversão exata dos centavos e imagens demo.
+Não abre navegador nem precisa de API/banco.
+
+### 4. Frontend: tela mock e referência visual — pasta `frontend/`
+
+```sh
 npm run test:visual:docker
 ```
 
-O segundo comando constrói a imagem Playwright fixada, executa os fluxos mock e compara
-o snapshot em **Linux/Chromium**, evitando diferenças de fontes/plataforma. Exige Node/npm
-e Docker locais; não exige instalar navegador no computador. Artefatos de falha ficam em
-`frontend/test-results/`. A referência PNG é versionada separadamente dos testes de comportamento.
+O comando prepara uma imagem Playwright, instala as dependências e compila o Next.js
+dentro dela. Depois abre a tela com Chromium, usa a API fictícia MSW e testa cadastro,
+filtros, ordenação, paginação, validação, novo login após 401, estados de imagem e layout.
+Também compara a captura com `frontend/tests/__screenshots__/catalogo-desktop.png`.
 
-Com o Compose completo ativo, para testar a interface com API/banco reais:
+Exige Node/npm para iniciar o script e Docker para o ambiente; o navegador não precisa
+ser instalado no computador. A primeira preparação pode levar vários minutos; imagem,
+npm e compilação são etapas anteriores à mensagem `Running ... tests`. Nas repetições,
+camadas sem alterações são reaproveitadas. Artefatos ficam em `frontend/test-results/`.
+
+### 5. Frontend: interface integrada ao backend — pasta `frontend/`
+
+Com o Compose completo iniciado pelo iniciador e `db`, `api` e `web` saudáveis:
 
 ```sh
 npm run test:real:docker
 ```
 
-O teste cadastra um produto exclusivo e o exclui ao terminar. Se personalizar a conta,
+Verifica login, cadastro pela interface, preço/categoria/estoque persistidos, recarga
+da página e erro de conexão recuperável. O produto exclusivo de teste é excluído ao
+terminar. **Essa suíte usa o banco da aplicação ativa; a integração backend acima usa
+outro banco, exclusivo de testes.** Se personalizar a conta,
 exporte `ADMIN_USERNAME`/`ADMIN_PASSWORD` para o runner. O runner também admite
 `E2E_COMPOSE_PROJECT`, `E2E_PUBLIC_API_URL` e `E2E_PUBLIC_WEB_URL` para instalações
 isoladas/portas diferentes; as URLs públicas devem coincidir com as usadas pela aplicação.
 
-Para uma atualização visual **intencional e revisada**, existe
-`npm run test:visual:docker:update`. Não atualize a referência apenas para esconder uma regressão.
-Playwright direto (`npm run test:e2e`) requer navegador instalado e build prévio;
-o snapshot é condicionado a Linux, por isso o caminho Docker é o recomendado.
+### Entender o resultado
+
+- `PASS` / `passed`: as verificações daquele grupo passaram. Um erro HTTP 400/401/409
+  pode fazer parte de um cenário que testa rejeições esperadas.
+- `tsc: not found`, `jest: not found` ou módulo `pg` ausente: confira a instalação
+  local com `npm ci --include=dev` na pasta correspondente; a suíte ainda não começou.
+- `Canceled: context canceled`: a preparação/build foi interrompida; se cancelou no
+  terminal, esse resultado é esperado. Não significa que um cenário falhou.
+- PNG diferente: examine a captura/diff em `frontend/test-results/` antes de decidir
+  se há regressão. `test:visual:docker:update` existe para mudança visual intencional
+  e revisada; não é o comando normal de validação.
+
+O [guia completo](docs/TESTES.md) explica os mounts, a preparação demorada, mensagens
+de banco/rede e como usar imagens já construídas. Playwright direto (`npm run test:e2e`)
+requer navegador instalado e build prévio; a comparação visual de referência exige Linux.
 
 ### Resultados executados
 

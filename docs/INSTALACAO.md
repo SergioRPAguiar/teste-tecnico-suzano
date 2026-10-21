@@ -299,7 +299,9 @@ publicação de portas e CORS apropriados, não apenas substituir localhost no n
 
 ## Testes automatizados e modo mock separado
 
-O [README](../README.md#testes) contém comandos e resultados. Os scripts de início
+O [guia de testes](TESTES.md) explica a preparação, o que cada suíte verifica, onde
+executar os comandos e como interpretar mensagens e demora do Docker. O
+[README](../README.md#testes) traz o resumo e os resultados. Os scripts de início
 sobem a aplicação, **não executam as suítes automaticamente**.
 
 Para backend unitário sem instalar Node no host, com o ambiente já construído:
@@ -308,9 +310,11 @@ Para backend unitário sem instalar Node no host, com o ambiente já construído
 docker compose run --rm --no-deps migrate npm run test:unit
 ```
 
-Para desenvolvimento com npm, modo mock independente, integração no banco `_test`
-e testes Playwright/snapshot, siga as seções específicas do README. O teste real de
-navegador usa a conta demo ou as credenciais que você exportar para o runner.
+Para executar TypeScript/Jest no computador, instale dependências com
+`npm ci --include=dev` em cada pacote; no backend, gere também o client com
+`npm run db:generate`. O build Docker instala pacotes na imagem, não no clone.
+Para modo mock, integração `_test` e Playwright/snapshot, siga o guia. O teste real
+de navegador usa a conta demo ou as credenciais que você exportar para o runner.
 
 Se precisar reportar uma falha, envie o comando usado, sistema operacional, saída
 de `docker compose ps -a` e os logs do serviço afetado. Não envie seu `.env` com segredos.

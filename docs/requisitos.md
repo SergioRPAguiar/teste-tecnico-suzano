@@ -96,7 +96,7 @@ não promessa sobre futuras bases de advisories. Nenhum benchmark de capacidade 
 |---|---|---|---|
 | E01 | Publicar código e compartilhar link | Repositório de entrega | https://github.com/SergioRPAguiar/teste-tecnico-suzano — código e histórico na branch main |
 | E02 | Prazo de cinco dias úteis do enunciado | Sob controle do responsável | Não é uma verificação de código |
-| E03 | Instruções de execução/testes | Verificado | README, docs/INSTALACAO.md e docs/SWAGGER.md; iniciadores Windows/Linux, CAs automáticas e compatibilidade Compose5.6 no Windows, roteiro Swagger detalhado (I17/I19/I20). Windows build/subida passaram; Bash preflight/subida sem build passaram no WSL (D14/D17/D18) |
+| E03 | Instruções de execução/testes | Verificado | README, docs/INSTALACAO.md, docs/SWAGGER.md e docs/TESTES.md; preparação local/Docker, objetivos das suítes, banco `_test`, mounts e diagnóstico conferidos contra scripts. Iniciadores Windows/Linux, CAs automáticas e compatibilidade Compose5.6 (I17/I19/I20); builds/subidas conforme D14/D17/D18 |
 
 **Auditoria:** obrigatórios e extras técnicos do PDF implementados e verificados localmente.
 Publicação e histórico são verificáveis diretamente no repositório acima. O resultado
