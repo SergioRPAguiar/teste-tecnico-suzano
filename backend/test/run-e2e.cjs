@@ -18,7 +18,7 @@ async function run() {
   } finally { await client.end(); }
 
   for (const args of [
-    ["node_modules/prisma/build/index.js", "migrate", "deploy"],
+    ["scripts/prisma.cjs", "migrate", "deploy"],
     ["node_modules/jest/bin/jest.js", "--config", "test/jest-e2e.config.cjs", "--runInBand"],
   ]) {
     const result = spawnSync(process.execPath, args, { stdio: "inherit", env: process.env });

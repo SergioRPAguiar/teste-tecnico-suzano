@@ -357,3 +357,12 @@ sido autorizadas em D17; esta etapa corrige a compatibilidade desse mesmo fluxo.
 - Formulários e estados de interface seguem a mesma linguagem visual. Diálogo nativo,
   foco inicial no primeiro campo, navegação por teclado e movimento reduzido preservam
   a usabilidade. A atualização é visual, mantendo os contratos e os fluxos C01–C08.
+
+## D21 — Confiança TLS do CLI Prisma local no Windows
+
+- Os scripts npm do CLI Prisma e a aplicação de migrations do runner de integração
+  usam `backend/scripts/prisma.cjs`. No Windows, ele reaproveita as CAs raiz do sistema
+  em um Node filho, mantendo TLS ativo e os comandos existentes.
+- O PEM e seu diretório são temporários no sistema, fora do projeto, com limpeza em
+  sucesso/falha tratada. Um `NODE_EXTRA_CA_CERTS` explícito é preservado; em Linux/Docker
+  a execução mantém o ambiente recebido. Não altera schema, conta ou regras da aplicação.

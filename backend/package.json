@@ -12,12 +12,12 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "jest --runInBand",
     "test:e2e": "node test/run-e2e.cjs",
-    "db:validate": "prisma validate",
-    "db:format": "prisma format",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:status": "prisma migrate status",
+    "db:validate": "node scripts/prisma.cjs validate",
+    "db:format": "node scripts/prisma.cjs format",
+    "db:generate": "node scripts/prisma.cjs generate",
+    "db:migrate": "node scripts/prisma.cjs migrate dev",
+    "db:deploy": "node scripts/prisma.cjs migrate deploy",
+    "db:status": "node scripts/prisma.cjs migrate status",
     "db:seed": "node dist/seed.js"
   },
   "dependencies": {

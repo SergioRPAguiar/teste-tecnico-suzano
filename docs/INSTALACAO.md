@@ -256,6 +256,12 @@ Comandos manuais `docker compose up --build` não exportam CAs do Windows; em re
 corporativa, prefira o iniciador. Referências: [Node — NODE_EXTRA_CA_CERTS](https://nodejs.org/docs/latest-v22.x/api/cli.html#node_extra_ca_certsfile)
 e [Docker — build secrets](https://docs.docker.com/build/building/secrets/).
 
+Para a preparação de testes executados diretamente no **Windows**, `npm run
+db:generate` e os demais scripts npm do CLI Prisma também usam as CAs raiz do
+sistema. Nesse fluxo local, o PEM fica na pasta temporária do Windows, fora do
+projeto, e é removido ao encerrar. A instalação `npm ci` e o runner visual têm
+preparações próprias; veja o [guia de testes](TESTES.md#prisma-local-no-windows-corporativo).
+
 ## Problemas comuns
 
 | Sintoma | Como resolver |

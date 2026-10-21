@@ -212,6 +212,11 @@ npm ci --include=dev
 npm run db:generate
 ```
 
+No Windows, os comandos Prisma do projeto fornecem automaticamente ao processo as
+CAs raiz confiáveis do sistema quando não há `NODE_EXTRA_CA_CERTS` explícito. Isso
+também atende à geração local do client em rede corporativa, mantendo a validação
+HTTPS. O PEM fica temporariamente na pasta do sistema e é removido ao encerrar.
+
 Na pasta **`frontend/`**:
 
 ```sh
