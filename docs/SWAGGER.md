@@ -1,6 +1,6 @@
 # Swagger: do primeiro clique ao pedido concluído
 
-Este roteiro é para testar a API pelo navegador, mesmo sem conhecer programação.
+Este roteiro apresenta uma sequência de operações para testar a API pelo navegador.
 **Você não precisa executar comandos no terminal nesta seção.** Antes, inicie a
 aplicação seguindo o [guia Windows/Linux](INSTALACAO.md) e aguarde a mensagem de sucesso.
 
