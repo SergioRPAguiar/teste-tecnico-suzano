@@ -53,6 +53,11 @@ git clone https://github.com/SergioRPAguiar/teste-tecnico-suzano.git
 cd teste-tecnico-suzano
 ```
 
+> **Antes de iniciar:** após o clone, recomendamos fechar e abrir uma nova janela
+> do PowerShell, especialmente se Git ou Docker foram instalados ou atualizados
+> nessa sessão. Isso evita usar variáveis de ambiente desatualizadas. Na nova
+> janela, entre novamente na pasta clonada antes de executar `iniciar.cmd`.
+
 Alternativa: no GitHub, **Code → Download ZIP**, extraia completamente e abra a
 pasta que contém `compose.yaml` e `iniciar.cmd`. Não execute de dentro do ZIP.
 
@@ -120,6 +125,14 @@ contexto Docker do usuário estiver corretamente configurado.
 ```bash
 git clone https://github.com/SergioRPAguiar/teste-tecnico-suzano.git
 cd teste-tecnico-suzano
+```
+
+> **Antes de iniciar:** após o clone, recomendamos fechar e abrir uma nova janela
+> do terminal, especialmente se as ferramentas foram instaladas ou atualizadas
+> nessa sessão. Entre novamente na pasta clonada para executar o iniciador com
+> o ambiente atualizado.
+
+```bash
 bash iniciar.sh
 ```
 
