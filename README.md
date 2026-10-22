@@ -44,7 +44,19 @@ também com o executável oficial do Compose 5.6.0.
 Pré-requisitos: Docker Desktop/Engine Linux com Compose v2 e BuildKit. Ambiente
 verificado com Docker 27.4.0 e Compose 2.31.0. As imagens base estão fixadas por digest.
 
-1. Na raiz, crie **`.env` com o conteúdo de `.env.example`**.
+1. Na **raiz**, copie `.env.example` para `.env`, somente se ainda não existir.
+   Execute o comando da sua plataforma:
+
+   **Windows/PowerShell**
+   ```powershell
+   if (-not (Test-Path -LiteralPath '.env')) { Copy-Item -LiteralPath '.env.example' -Destination '.env' }
+   ```
+
+   **Linux/Bash**
+   ```bash
+   test -f .env || cp .env.example .env
+   ```
+
 2. Na raiz, execute:
 
    ```sh
@@ -109,8 +121,20 @@ de demonstração; o botão de acesso demo está disponível nesse modo.
 Os placeholders antigos dos itens demo são substituídos pelas fotos locais, preservando
 cadastros e alterações salvos no navegador.
 
-Para selecionar o modo, crie `frontend/.env.local` a partir de
-`frontend/.env.local.example`:
+Para selecionar o modo, copie o exemplo para `.env.local`, somente se ainda não
+existir. Execute uma das opções dentro de **`frontend/`**:
+
+**Windows/PowerShell**
+```powershell
+if (-not (Test-Path -LiteralPath '.env.local')) { Copy-Item -LiteralPath '.env.local.example' -Destination '.env.local' }
+```
+
+**Linux/Bash**
+```bash
+test -f .env.local || cp .env.local.example .env.local
+```
+
+O arquivo copiado contém:
 
 ```dotenv
 NEXT_PUBLIC_API_MODE=mock
@@ -137,8 +161,22 @@ em `public/mockServiceWorker.js`; o clone não depende de OpenCode para funciona
 ## Backend local
 
 1. Prepare o `.env` da raiz e suba somente o banco com `docker compose up -d --wait db`.
-2. Crie **`backend/.env` a partir de `backend/.env.example`**. É separado do `.env` do Compose.
-3. Na pasta **`backend/`**:
+2. Na pasta **`backend/`**, copie `.env.example` para `.env`, somente se ainda não existir.
+   Esse arquivo é separado do `.env` da raiz usado pelo Compose. Execute o comando
+   da sua plataforma para copiar o arquivo diretamente, preservando sua codificação:
+
+   **Windows/PowerShell**
+   ```powershell
+   if (-not (Test-Path -LiteralPath '.env')) { Copy-Item -LiteralPath '.env.example' -Destination '.env' }
+   ```
+
+   **Linux/Bash**
+   ```bash
+   test -f .env || cp .env.example .env
+   ```
+
+   Depois da cópia, ajuste os valores se personalizou banco, portas ou credenciais.
+3. Ainda na pasta **`backend/`**:
 
    ```sh
    npm ci

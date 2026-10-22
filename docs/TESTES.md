@@ -109,8 +109,21 @@ exige configuração própria de banco de testes.
 ### Preparar o banco e os arquivos de ambiente
 
 1. Conclua a preparação local do backend da seção 2.
-2. Na **raiz**, tenha `.env` criado pelo iniciador ou copiado de `.env.example`.
-   Se já existe, preserve-o. Suba somente o banco:
+2. Na **raiz**, o iniciador cria `.env` se ainda não existir. Para preparar o arquivo
+   manualmente, execute o comando de cópia da sua plataforma; ele preserva um `.env`
+   já existente:
+
+   **Linux/Bash**
+   ```bash
+   test -f .env || cp .env.example .env
+   ```
+
+   **Windows/PowerShell**
+   ```powershell
+   if (-not (Test-Path -LiteralPath '.env')) { Copy-Item -LiteralPath '.env.example' -Destination '.env' }
+   ```
+
+   Ainda na raiz, suba somente o banco:
 
    ```sh
    docker compose up -d --wait db
