@@ -201,67 +201,6 @@ Se já construiu as imagens e não alterou o código, pode evitar reconstruí-la
 
 Na primeira execução e após mudanças no código, use o iniciador normal, sem essa opção.
 
-## Certificados em redes corporativas
-
-Continue usando **`iniciar.cmd` no Windows** ou **`bash iniciar.sh` no Linux**.
-O suporte é automático; não há um certificado da empresa para baixar do repositório.
-
-Uma rede com inspeção HTTPS pode apresentar um certificado assinado pela CA interna.
-Mesmo que o Windows confie nela, o Node dentro do container Linux usa sua própria
-lista de CAs. Isso pode causar `self-signed certificate in certificate chain` no
-download do Prisma (`binaries.prisma.sh`) ou na instalação npm.
-
-Durante o build, os iniciadores fazem o seguinte:
-
-- **Windows:** leem as CAs raiz confiáveis de usuário/máquina em modo somente leitura,
-  deduplicam e excluem as entradas também presentes em Disallowed. Exportam apenas
-  os certificados públicos para um PEM temporário, sem acessar chaves privadas.
-- **Linux:** usam o bundle existente em `/etc/ssl/certs/ca-certificates.crt`,
-  `/etc/pki/tls/certs/ca-bundle.crt` ou `/etc/ssl/cert.pem`, conforme disponível.
-  Se não houver bundle legível, o build segue com as CAs padrão do Node.
-- O PEM Windows e a cópia temporária do bundle Linux ficam na raiz do projeto,
-  com prefixo `.suzano-build-ca-`. Git e contexto Docker ignoram esses arquivos;
-  sua leitura é feita exclusivamente como secret, não por COPY. Essa localização
-  também atende ao limite de leitura do Bake nas versões recentes do Buildx.
-- Acrescentam `compose.ca.yaml` e passam o arquivo como secret do BuildKit. O helper
-  `scripts/build-with-ca.sh` configura `NODE_EXTRA_CA_CERTS` apenas nos processos de
-  instalação/build. O bundle não é copiado para as camadas nem configurado no runtime.
-- Os temporários são removidos ao encerrar, inclusive em falha tratada pelos
-  iniciadores. `.env`, volumes e repositórios de certificados são preservados.
-
-No Windows, as três imagens são construídas sequencialmente com **`docker buildx build
---load`**, usando contextos, estágios e argumentos obtidos da configuração Compose.
-Depois, o Compose sobe os serviços com **`up --no-build`**. Isso evita a conversão
-automática de caminhos Windows pelo Bake sem mudar o comando usado pelo avaliador.
-O Buildx já acompanha o Docker Desktop; não é preciso instalar Node/npm no computador.
-
-No Windows, procure a mensagem **`Build com N CAs raiz confiaveis do Windows`** antes
-da compilação. No Linux, aparece **`Build com as CAs confiaveis do sistema Linux`**
-quando um bundle é encontrado. `-Verificar`/`--verificar` só conferem pré-requisitos;
-não testam a rede nem exportam certificados. `-SemBuild`/`--sem-build` reutilizam imagens.
-
-Se estava usando uma versão anterior, atualize o clone e tente novamente na raiz:
-
-```powershell
-git pull --ff-only
-.\iniciar.cmd
-```
-
-O mecanismo utiliza as CAs **já confiáveis no sistema**. Se o erro persistir, confira
-se a autoridade da conexão está nessa lista e se há proxy/bloqueio do domínio. Um
-certificado presente apenas em um navegador pode não estar no repositório Root do
-Windows. Não é necessário desativar a validação TLS para usar essa configuração.
-
-Comandos manuais `docker compose up --build` não exportam CAs do Windows; em rede
-corporativa, prefira o iniciador. Referências: [Node — NODE_EXTRA_CA_CERTS](https://nodejs.org/docs/latest-v22.x/api/cli.html#node_extra_ca_certsfile)
-e [Docker — build secrets](https://docs.docker.com/build/building/secrets/).
-
-Para a preparação de testes executados diretamente no **Windows**, `npm run
-db:generate` e os demais scripts npm do CLI Prisma também usam as CAs raiz do
-sistema. Nesse fluxo local, o PEM fica na pasta temporária do Windows, fora do
-projeto, e é removido ao encerrar. A instalação `npm ci` e o runner visual têm
-preparações próprias; veja o [guia de testes](TESTES.md#prisma-local-no-windows-corporativo).
-
 ## Problemas comuns
 
 | Sintoma | Como resolver |
@@ -272,8 +211,6 @@ preparações próprias; veja o [guia de testes](TESTES.md#prisma-local-no-windo
 | `unknown flag: --wait` | Atualize Compose v2; o antigo comando `docker-compose` v1 não atende este roteiro. |
 | Porta ocupada / `address already in use` | Encerre sua instância local antiga ou personalize as portas como abaixo. Não é preciso apagar volumes. |
 | Falha de download / `ECONNRESET` | Confira internet, proxy/VPN e acesso ao registro npm/Docker; repita o iniciador. |
-| `self-signed certificate in certificate chain` no Prisma/npm | Atualize o projeto e use o iniciador normal para fornecer as CAs do sistema ao build; veja a seção de certificados acima. |
-| `failed to execute bake` logo após `load local bake definitions` | Atualize o clone e execute `iniciar.cmd`: o fluxo Windows usa Buildx direto para as imagens e Compose para a subida. Se persistir, envie também `docker buildx version` e `docker buildx ls`. |
 | Build lento, disco cheio ou Docker travado | Confira espaço no disco **do Docker** e memória disponível. Um projeto no D: pode ter Docker armazenado no C:. Use as configurações oficiais do Docker para realocar se necessário. |
 | Build muito lento no WSL usando `/mnt/c` ou `/mnt/d` | Prefira o iniciador Windows para um clone no Windows, ou clone dentro de `~/projetos` no Linux e use o iniciador Bash. A travessia de arquivos entre os sistemas pode ficar muito lenta. |
 | Erro WSL ao iniciar Docker | Salve trabalho WSL; encerre Docker, execute `wsl --shutdown` e reabra. Isso encerra todas as distros. Se persistir, siga diagnóstico oficial; não apague VHDX/distribuições nem use Factory Reset como primeira tentativa. |

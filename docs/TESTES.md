@@ -54,29 +54,6 @@ O primeiro comando instala as dependências fixadas em `package-lock.json`, incl
 TypeScript, Jest e as ferramentas de integração. O segundo gera o Prisma Client a
 partir do schema. **A geração não exige conexão com o banco.**
 
-### Prisma local no Windows corporativo
-
-Mesmo sem conectar ao banco, `db:generate` pode baixar um componente nativo do Prisma
-para o Windows. O componente disponível no container Linux não substitui esse arquivo.
-`typecheck` e `test:unit` não fazem esse download; precisam da preparação concluída.
-
-No **Windows/PowerShell**, os comandos npm que chamam o CLI do Prisma usam
-`backend/scripts/prisma.cjs`. Ele reaproveita o helper de certificados do projeto,
-lê as CAs raiz confiáveis do Windows e inicia o Prisma com `NODE_EXTRA_CA_CERTS` no
-processo filho. O PEM é criado na pasta temporária do sistema, fora do repositório,
-e removido após sucesso ou falha tratada. Não há instalação de certificados, leitura
-de chaves privadas ou desativação de TLS. O comando de preparação continua o mesmo:
-
-```powershell
-npm run db:generate
-```
-
-A mensagem `Prisma: N CAs raiz do Windows disponiveis temporariamente` confirma o
-uso automático. Um `NODE_EXTRA_CA_CERTS` já configurado é respeitado, incluindo o
-secret dos builds Docker. No Linux, o wrapper delega ao CLI normalmente, preservando
-o ambiente recebido. Use os scripts npm do projeto; `npx prisma ...` chama o CLI
-diretamente e não passa por esse helper.
-
 ### Preparação local do frontend
 
 Dentro de **`frontend/`**:
@@ -358,7 +335,6 @@ o formato da saída; não representam uma execução nova realizada por abrir es
 | Falha de autenticação no PostgreSQL | Confira as credenciais que inicializaram o volume; mudar POSTGRES_* não troca a senha de um banco já existente. |
 | `Canceled: context canceled` | Build/operação interrompida. Se cancelou no terminal, o resultado é esperado; não é uma reprovação de cenário. |
 | Build em `npm ci`, sem `Running ... tests` | Ainda está preparando dependências. Acompanhe a etapa, rede, proxy e recursos disponíveis. |
-| `self-signed certificate in certificate chain` | No Prisma local Windows, confira o uso de `npm run db:generate` da versão atual e a mensagem de CAs automáticas. Instalação npm local e runner visual são fluxos separados e não herdam essa exportação; consulte a seção corporativa da instalação. |
 | PNG diferente | Compare esperado/obtido/diff em frontend/test-results; confirme ambiente Linux fixado e dados antes de decidir atualizar a referência. |
 | Navegador real não encontra serviços/rede | Inicie o Compose completo e confira nome do projeto, portas e URLs públicas. |
 

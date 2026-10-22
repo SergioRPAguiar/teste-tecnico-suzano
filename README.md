@@ -35,9 +35,6 @@ e execute apenas o iniciador da sua plataforma. Ele prepara `.env`, banco, migra
 
 Os scripts preservam `.env` e volumes existentes. A primeira execução baixa imagens
 e compila a aplicação; aguarde a mensagem final. Interface3000 e Swagger3001/docs.
-Em redes corporativas, os iniciadores fornecem automaticamente ao build as CAs raiz
-confiáveis do Windows ou o bundle do Linux. Não é preciso exportar certificados à mão;
-a validação HTTPS permanece ativa. [Detalhes e diagnóstico](docs/INSTALACAO.md#certificados-em-redes-corporativas).
 O iniciador Windows constrói as imagens com Buildx e usa Compose para iniciar os
 serviços, evitando incompatibilidades do Bake com caminhos Windows. Fluxo verificado
 também com o executável oficial do Compose 5.6.0.
@@ -211,11 +208,6 @@ Na pasta **`backend/`**, ao preparar um clone ou após mudanças nas dependênci
 npm ci --include=dev
 npm run db:generate
 ```
-
-No Windows, os comandos Prisma do projeto fornecem automaticamente ao processo as
-CAs raiz confiáveis do sistema quando não há `NODE_EXTRA_CA_CERTS` explícito. Isso
-também atende à geração local do client em rede corporativa, mantendo a validação
-HTTPS. O PEM fica temporariamente na pasta do sistema e é removido ao encerrar.
 
 Na pasta **`frontend/`**:
 
